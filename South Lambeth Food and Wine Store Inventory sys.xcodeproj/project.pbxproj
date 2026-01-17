@@ -1,0 +1,583 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		D7901BC62F1B1B98008B3E60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D7901BB02F1B1B97008B3E60 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D7901BB72F1B1B97008B3E60;
+			remoteInfo = "South Lambeth Food and Wine Store Inventory sys";
+		};
+		D7901BD02F1B1B98008B3E60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D7901BB02F1B1B97008B3E60 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D7901BB72F1B1B97008B3E60;
+			remoteInfo = "South Lambeth Food and Wine Store Inventory sys";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		D7901BB82F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "South Lambeth Food and Wine Store Inventory sys.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7901BC52F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "South Lambeth Food and Wine Store Inventory sysTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7901BCF2F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "South Lambeth Food and Wine Store Inventory sysUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D7901BBA2F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "South Lambeth Food and Wine Store Inventory sys";
+			sourceTree = "<group>";
+		};
+		D7901BC82F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "South Lambeth Food and Wine Store Inventory sysTests";
+			sourceTree = "<group>";
+		};
+		D7901BD22F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "South Lambeth Food and Wine Store Inventory sysUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D7901BB52F1B1B97008B3E60 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7901BC22F1B1B98008B3E60 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7901BCC2F1B1B98008B3E60 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D7901BAF2F1B1B97008B3E60 = {
+			isa = PBXGroup;
+			children = (
+				D7901BBA2F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */,
+				D7901BC82F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests */,
+				D7901BD22F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests */,
+				D7901BB92F1B1B97008B3E60 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D7901BB92F1B1B97008B3E60 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D7901BB82F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys.app */,
+				D7901BC52F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests.xctest */,
+				D7901BCF2F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D7901BB72F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D7901BD92F1B1B98008B3E60 /* Build configuration list for PBXNativeTarget "South Lambeth Food and Wine Store Inventory sys" */;
+			buildPhases = (
+				D7901BB42F1B1B97008B3E60 /* Sources */,
+				D7901BB52F1B1B97008B3E60 /* Frameworks */,
+				D7901BB62F1B1B97008B3E60 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D7901BBA2F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */,
+			);
+			name = "South Lambeth Food and Wine Store Inventory sys";
+			packageProductDependencies = (
+			);
+			productName = "South Lambeth Food and Wine Store Inventory sys";
+			productReference = D7901BB82F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D7901BC42F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D7901BDC2F1B1B98008B3E60 /* Build configuration list for PBXNativeTarget "South Lambeth Food and Wine Store Inventory sysTests" */;
+			buildPhases = (
+				D7901BC12F1B1B98008B3E60 /* Sources */,
+				D7901BC22F1B1B98008B3E60 /* Frameworks */,
+				D7901BC32F1B1B98008B3E60 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D7901BC72F1B1B98008B3E60 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D7901BC82F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests */,
+			);
+			name = "South Lambeth Food and Wine Store Inventory sysTests";
+			packageProductDependencies = (
+			);
+			productName = "South Lambeth Food and Wine Store Inventory sysTests";
+			productReference = D7901BC52F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D7901BCE2F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D7901BDF2F1B1B98008B3E60 /* Build configuration list for PBXNativeTarget "South Lambeth Food and Wine Store Inventory sysUITests" */;
+			buildPhases = (
+				D7901BCB2F1B1B98008B3E60 /* Sources */,
+				D7901BCC2F1B1B98008B3E60 /* Frameworks */,
+				D7901BCD2F1B1B98008B3E60 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D7901BD12F1B1B98008B3E60 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D7901BD22F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests */,
+			);
+			name = "South Lambeth Food and Wine Store Inventory sysUITests";
+			packageProductDependencies = (
+			);
+			productName = "South Lambeth Food and Wine Store Inventory sysUITests";
+			productReference = D7901BCF2F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D7901BB02F1B1B97008B3E60 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					D7901BB72F1B1B97008B3E60 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					D7901BC42F1B1B98008B3E60 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = D7901BB72F1B1B97008B3E60;
+					};
+					D7901BCE2F1B1B98008B3E60 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = D7901BB72F1B1B97008B3E60;
+					};
+				};
+			};
+			buildConfigurationList = D7901BB32F1B1B97008B3E60 /* Build configuration list for PBXProject "South Lambeth Food and Wine Store Inventory sys" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D7901BAF2F1B1B97008B3E60;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D7901BB92F1B1B97008B3E60 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D7901BB72F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */,
+				D7901BC42F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests */,
+				D7901BCE2F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D7901BB62F1B1B97008B3E60 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7901BC32F1B1B98008B3E60 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7901BCD2F1B1B98008B3E60 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D7901BB42F1B1B97008B3E60 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7901BC12F1B1B98008B3E60 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7901BCB2F1B1B98008B3E60 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D7901BC72F1B1B98008B3E60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D7901BB72F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */;
+			targetProxy = D7901BC62F1B1B98008B3E60 /* PBXContainerItemProxy */;
+		};
+		D7901BD12F1B1B98008B3E60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D7901BB72F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */;
+			targetProxy = D7901BD02F1B1B98008B3E60 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		D7901BD72F1B1B98008B3E60 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = L997G6M7F5;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		D7901BD82F1B1B98008B3E60 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = L997G6M7F5;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D7901BDA2F1B1B98008B3E60 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L997G6M7F5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.codebuket.South-Lambeth-Food-and-Wine-Store-Inventory-sys";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D7901BDB2F1B1B98008B3E60 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L997G6M7F5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.codebuket.South-Lambeth-Food-and-Wine-Store-Inventory-sys";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D7901BDD2F1B1B98008B3E60 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L997G6M7F5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.codebuket.South-Lambeth-Food-and-Wine-Store-Inventory-sysTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/South Lambeth Food and Wine Store Inventory sys.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/South Lambeth Food and Wine Store Inventory sys";
+			};
+			name = Debug;
+		};
+		D7901BDE2F1B1B98008B3E60 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L997G6M7F5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.codebuket.South-Lambeth-Food-and-Wine-Store-Inventory-sysTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/South Lambeth Food and Wine Store Inventory sys.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/South Lambeth Food and Wine Store Inventory sys";
+			};
+			name = Release;
+		};
+		D7901BE02F1B1B98008B3E60 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L997G6M7F5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.codebuket.South-Lambeth-Food-and-Wine-Store-Inventory-sysUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "South Lambeth Food and Wine Store Inventory sys";
+			};
+			name = Debug;
+		};
+		D7901BE12F1B1B98008B3E60 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L997G6M7F5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.codebuket.South-Lambeth-Food-and-Wine-Store-Inventory-sysUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "South Lambeth Food and Wine Store Inventory sys";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D7901BB32F1B1B97008B3E60 /* Build configuration list for PBXProject "South Lambeth Food and Wine Store Inventory sys" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D7901BD72F1B1B98008B3E60 /* Debug */,
+				D7901BD82F1B1B98008B3E60 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D7901BD92F1B1B98008B3E60 /* Build configuration list for PBXNativeTarget "South Lambeth Food and Wine Store Inventory sys" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D7901BDA2F1B1B98008B3E60 /* Debug */,
+				D7901BDB2F1B1B98008B3E60 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D7901BDC2F1B1B98008B3E60 /* Build configuration list for PBXNativeTarget "South Lambeth Food and Wine Store Inventory sysTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D7901BDD2F1B1B98008B3E60 /* Debug */,
+				D7901BDE2F1B1B98008B3E60 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D7901BDF2F1B1B98008B3E60 /* Build configuration list for PBXNativeTarget "South Lambeth Food and Wine Store Inventory sysUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D7901BE02F1B1B98008B3E60 /* Debug */,
+				D7901BE12F1B1B98008B3E60 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D7901BB02F1B1B97008B3E60 /* Project object */;
+}
