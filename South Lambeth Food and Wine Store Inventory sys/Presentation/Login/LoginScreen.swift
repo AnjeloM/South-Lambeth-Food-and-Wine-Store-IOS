@@ -1,9 +1,3 @@
-//
-//  SignInScreen.swift
-//  South Lambeth Food and Wine Store Inventory sys
-//
-//  Created by Mariyan Anjelo on 19/01/2026.
-//
 import SwiftUI
 
 public struct LoginScreen: View {
@@ -145,19 +139,7 @@ public struct LoginScreen: View {
 private struct LoginScreenPreviewHost: View {
 
     // Sample state (tweak values to test UI)
-    private let state = LoginUiState(
-        title: "Login",
-        email: "anjelom.1990@gmail.com",
-        emailLabel: "Email",
-        password: "password123",
-        passwordLabel: "Password",
-        isPasswordVisible: false,
-        isLoginEnabled: true,
-        forgotPasswordText: "Forgot Password",
-        loginButtonText: "Login",
-        signUpLinkPrefixText: "Don’t have account?",
-        signUpLinkButtonText: "SignUp"
-    )
+    private let state = LoginUiState()
 
     var body: some View {
         NavigationStack {

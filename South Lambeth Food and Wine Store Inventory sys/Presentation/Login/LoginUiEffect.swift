@@ -1,14 +1,8 @@
-//
-//  SignInEffect.swift
-//  South Lambeth Food and Wine Store Inventory sys
-//
-//  Created by Mariyan Anjelo on 20/01/2026.
-//
 import Foundation
 
-public enum LoginEffect: Equatable {
+public enum LoginUiEffect: Equatable {
     case navigateBack
-    case navigateForgotPassowrd
+    case navigateForgotPassword
     case navigateSignUp
     case navigateHome
     

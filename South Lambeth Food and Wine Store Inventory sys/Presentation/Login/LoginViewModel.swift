@@ -1,25 +1,20 @@
-//
-//  SignInViewModel.swift
-//  South Lambeth Food and Wine Store Inventory sys
-//
-//  Created by Mariyan Anjelo on 19/01/2026.
-//
-import Foundation
 import Combine
+import Foundation
 
 @MainActor
 public final class LoginViewModel: ObservableObject {
+
     @Published public private(set) var state: LoginUiState
 
     // One-off events (navigation, alerts)
-    private let effectContinuation: AsyncStream<LoginUiEffect>.Continuation
     public let effects: AsyncStream<LoginUiEffect>
+    private let effectContinuation: AsyncStream<LoginUiEffect>.Continuation
 
     public init(initialState: LoginUiState? = nil) {
         self.state = initialState ?? LoginUiState()
 
         var cont: AsyncStream<LoginUiEffect>.Continuation!
-        self.effects = AsyncStream<LoginUiEffect> { continuation in
+        self.effects = AsyncStream<LoginUiEffect>(bufferingPolicy: .bufferingNewest(10)) { continuation in
             cont = continuation
         }
         self.effectContinuation = cont
@@ -37,11 +32,33 @@ public final class LoginViewModel: ObservableObject {
         case .onAppear:
             // No business login yet
             break
+            
         case .backTapped:
             emit(.navigateBack)
-            
-       
 
+        case .emailChanged(let value):
+            state.email = value
+            recalcDerivedState()
+
+        case .passwordChanged(let value):
+            state.password = value
+            recalcDerivedState()
+
+        case .passwordVisibilityTapped:
+            state.isPasswordVisible.toggle()
+
+        case .forgotPasswordTapped:
+            emit(.navigateForgotPassword)
+
+        case .signUpTapped:
+            emit(.navigateSignUp)
+
+        case .loginTapped:
+            // No firebase auth yet, Navigate placeholder for now.
+            // Later this will call Firebase Auth / function then emit navigationHome.
+            emit(.navigateHome)
+        case .navigateForgotPassword:
+            emit(.navigateForgotPassword)
         }
     }
 

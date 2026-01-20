@@ -17,11 +17,11 @@ public struct WelcomeScreen: View {
         self.state = state
         self.onEvent = onEvent
     }
-    
+
     @Environment(\.colorScheme) private var scheme
 
     public var body: some View {
-        ZStack{
+        ZStack {
             AppTheme.Colors.background(scheme)
                 .ignoresSafeArea()
             VStack(alignment: .leading, spacing: 0) {
@@ -32,14 +32,29 @@ public struct WelcomeScreen: View {
                     .lineSpacing(6)
                     .padding(.top, AppTheme.Layout.topPadding)
                     .padding(.horizontal, AppTheme.Layout.screenHPadding)
-                
+
                 Spacer(minLength: 24)
-                
-                
+
+                VStack(spacing: AppTheme.Layout.buttonSpacing) {
+                    AppPillButton(
+                        title: state.sendTestEmaitButtonTitle,
+                        isLoading: state.isSendingTestEmail,
+                        isEnabled: !state.isSendingTestEmail,
+                        action: { onEvent(.sendTestEmailTapped) }
+                    )
+                    AppPillButton(
+                        title: state.getStartedButtonTitle,
+                        isLoading: false,
+                        isEnabled: !state.isSendingTestEmail,
+                        action: {onEvent(.getStartedTapped)}
+                    )
+                }
+                .padding(.horizontal, AppTheme.Layout.screenHPadding)
+                .padding(.bottom, AppTheme.Layout.bottomPadding)
             }
         }
     }
-    
+
     private var brandDescription: some View {
         let hightlight = AppTheme.Colors.primaryText(scheme)
         let body = AppTheme.Colors.secondaryText(scheme)
@@ -69,11 +84,17 @@ public struct WelcomeScreen: View {
         attributed += part4
 
         return Text(attributed)
+            .font(AppTheme.Typography.body)
+            .lineSpacing(6)
+            .multilineTextAlignment(.leading)
     }
 }
 
-struct WelcomeScreen_Preview: PreviewProvider {
-    static var previews: some View {
-        WelcomeScreen(state: WelcomeState(), onEvent: { _ in })
-    }
+#Preview("WelcomeScreen - Light") {
+    WelcomeScreen(state: WelcomeUiState(), onEvent: { _ in })
+        .preferredColorScheme(.light)
+}
+
+#Preview("WelcomeScreen - Dark") {
+    WelcomeScreen(state: WelcomeUiState(), onEvent: { _ in })
 }

@@ -1,9 +1,3 @@
-//
-//  SignInRouteHostView.swift
-//  South Lambeth Food and Wine Store Inventory sys
-//
-//  Created by Mariyan Anjelo on 19/01/2026.
-//
 import SwiftUI
 
 @MainActor
@@ -58,6 +52,6 @@ public struct LoginRouteHostView: View {
     }
 }
 
-#Preview("SignInRouteHostView") {
-    SignInRouteHostView()
+#Preview("LoginRouteHostView") {
+    LoginRouteHostView()
 }

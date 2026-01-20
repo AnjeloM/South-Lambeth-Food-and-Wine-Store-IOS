@@ -39,7 +39,7 @@ public final class GateViewModel: ObservableObject {
 
     private func handleOnAppear() {
         // Prevent duplicate calls if the view re-appears
-        guard state.isLoading else { return }
+        guard !state.isLoading else { return }
         state.isLoading = true
 
         Task {
