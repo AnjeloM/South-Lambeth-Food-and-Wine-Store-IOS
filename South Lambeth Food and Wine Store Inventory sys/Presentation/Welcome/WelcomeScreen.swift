@@ -25,15 +25,22 @@ public struct WelcomeScreen: View {
             AppTheme.Colors.background(scheme)
                 .ignoresSafeArea()
             VStack(alignment: .leading, spacing: 0) {
-                Text(state.headlineText)
-                    .font(AppTheme.Typography.welcomeHeadingLine)
-                    .foregroundStyle(AppTheme.Colors.primaryText(scheme))
-                    .multilineTextAlignment(.leading)
-                    .lineSpacing(6)
-                    .padding(.top, AppTheme.Layout.topPadding)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(state.headlineText)
+                        .font(AppTheme.Typography.welcomeHeadingLine)
+                        .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                        .multilineTextAlignment(.leading)
+                        .lineSpacing(6)
+                        .padding(.top, AppTheme.Layout.topPadding)
+                    
+                    Spacer().frame(height: 8)
+                    
+                    brandDescription
+                }
                     .padding(.horizontal, AppTheme.Layout.screenHPadding)
-
-                Spacer(minLength: 24)
+                    .padding(.bottom, 16)
+                
+                Spacer()
 
                 VStack(spacing: AppTheme.Layout.buttonSpacing) {
                     AppPillButton(
@@ -46,7 +53,7 @@ public struct WelcomeScreen: View {
                         title: state.getStartedButtonTitle,
                         isLoading: false,
                         isEnabled: !state.isSendingTestEmail,
-                        action: {onEvent(.getStartedTapped)}
+                        action: { onEvent(.getStartedTapped) }
                     )
                 }
                 .padding(.horizontal, AppTheme.Layout.screenHPadding)

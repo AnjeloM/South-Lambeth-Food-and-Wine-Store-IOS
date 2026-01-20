@@ -51,7 +51,7 @@ public enum AppTheme {
     // MARK: Typography
     public enum Typography {
         public static let welcomeHeadingLine = Font.system(
-            size: 44,
+            size: 24,
             weight: .regular
         )
         public static let body = Font.system(size: 18, weight: .regular)
@@ -64,7 +64,7 @@ public enum AppTheme {
 
     // MARK: Layout
     public enum Layout {
-        public static let screenHPadding: CGFloat = 20
+        public static let screenHPadding: CGFloat = 24
         public static let topPadding: CGFloat = 24
         public static let bottomPadding: CGFloat = 18
 
