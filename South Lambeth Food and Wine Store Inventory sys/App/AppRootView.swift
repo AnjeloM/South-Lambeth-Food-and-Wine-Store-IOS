@@ -41,14 +41,44 @@ public struct AppRootView: View {
         case .login:
             LoginRouteHostView(
                 onNavigateBack: { route = .welcome },
-                onNavigateForgotPassword: { /* route = .forgotPassword (later) */ },
-                onNavigateSignUp: { /* route = .signUp (later) */  },
+                onNavigateForgotPassword: { /* route = .forgotPassword (later) */
+                },
+                onNavigateSignUp: { route = .signup },
                 onNavigateHome: { route = .home }
             )
 
         case .home:
             HomeRouteHostView {
                 route = .welcome
+            }
+        }
+    }
+
+    // MARK: - Toast (temporary, front-end only)
+
+    @ViewBuilder
+    private var toastOverlay: some View {
+        if let msg = toastMessage {
+            Text(msg)
+                .font(.subheadline)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule(style: .continuous))
+                .padding(.bottom, 18)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+
+    @MainActor
+    private func showToast(_ message: String) {
+        toastMessage = message
+
+        // Auto-hide after 2 seconds (simple UI-only behavior)
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            if toastMessage == message {
+                toastMessage = nil
             }
         }
     }

@@ -1,0 +1,42 @@
+import SwiftUI
+
+@MainActor
+public struct EmailOtpVerificationRouteHostView: View {
+    @StateObject private var viewModel: EmailOtpVerificationViewModel
+
+    public let onBack: () -> Void
+    public let onVerified: () -> Void
+    public let onToast: (String) -> Void
+
+    public init(
+        email: String,
+        service: EmailOtpServicing,
+        onBack: @escaping () -> Void,
+        onVerified: @escaping () -> Void,
+        onToast: @escaping (String) -> Void
+    ) {
+        self._viewModel = StateObject(
+            wrappedValue: EmailOtpVerificationViewModel(email: email, service: service)
+        )
+        self.onBack = onBack
+        self.onVerified = onVerified
+        self.onToast = onToast
+    }
+
+    public var body: some View {
+        EmailOtpVerificationScreen(
+            state: viewModel.state,
+            onEvent: viewModel.send
+        )
+        .onReceive(viewModel.effectsPublisher) { effect in
+            switch effect {
+            case .navigateBack:
+                onBack()
+            case .verifiedSuccessfully:
+                onVerified()
+            case let .showToast(message):
+                onToast(message)
+            }
+        }
+    }
+}

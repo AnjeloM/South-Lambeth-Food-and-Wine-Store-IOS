@@ -6,6 +6,10 @@ public struct LoginScreen: View {
 
     @Environment(\.colorScheme) private var scheme
 
+    // Keyboard management (UI0only concern, fine to keep local)
+    private enum FocusField { case email, password }
+    @FocusState private var focusedField: FocusField?
+
     public init(
         state: LoginUiState,
         onEvent: @escaping (LoginUiEvent) -> Void
@@ -15,14 +19,37 @@ public struct LoginScreen: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            topBar
+        ZStack {
+            AppTheme.Colors.background(scheme)
+                .ignoresSafeArea()
 
-            content
+            VStack(alignment: .leading, spacing: 0) {
+                AppTopBar(
+                    title: state.title,
+                    showBack: true,
+                    showsShadow: true,
+                ) {
+                    onEvent(.onbackTapped)
+                }
 
-            Spacer(minLength: 0)
+                ScrollView(showsIndicators: false) {
+                    content
 
-            bottomArea
+                    Spacer().frame(height: 42)
+
+                    bottomArea
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 10)
+                .padding(.bottom, 18)
+                .onAppear { onEvent(.onAppear) }
+                // Tap outside to dismiss keyboard
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    focusedField = nil
+                    dismissKeyboard()
+                }
+            }
         }
         .padding(.horizontal, 18)
         .padding(.top, 10)
