@@ -3,34 +3,30 @@ import SwiftUI
 public struct OutlinedPasswordField: View {
     public let title: String
     public let placeholder: String
-    public let value: String
+    @Binding public var text: String
+    
     public let isVisible: Bool
     public let isDisabled: Bool
     public let accessibilityLabel: String?
-
-    public let onChanged: (String) -> Void
     public let onToggleVisibility: () -> Void
-
+    
     @Environment(\.colorScheme) private var scheme
-    @State private var internalValue: String = ""
 
     public init(
         title: String,
         placeholder: String = "",
-        value: String,
+        text: Binding<String>,
         isVisible: Bool,
         isDisabled: Bool = false,
         accessibilityLabel: String? = nil,
-        onChanged: @escaping (String) -> Void,
         onToggleVisibility: @escaping () -> Void
     ) {
         self.title = title
         self.placeholder = placeholder
-        self.value = value
+        self._text = text
         self.isVisible = isVisible
         self.isDisabled = isDisabled
         self.accessibilityLabel = accessibilityLabel
-        self.onChanged = onChanged
         self.onToggleVisibility = onToggleVisibility
     }
 
@@ -43,19 +39,18 @@ public struct OutlinedPasswordField: View {
             HStack(spacing: 10) {
                 Group {
                     if isVisible {
-                        TextField(placeholder, text: binding)
+                        TextField(placeholder, text: $text)
                     } else {
-                        SecureField(placeholder, text: binding)
+                        SecureField(placeholder, text: $text)
                     }
                 }
-                .onAppear { internalValue = value }
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled(true)
                 .textContentType(.password)
                 .font(AppTheme.Typography.fieldValue)
 
                 Button(action: onToggleVisibility) {
-                    Image(systemName: isVisible ? "eye" : "eye.slash")
+                    Image(systemName: isVisible ? "eye.slash" : "eye")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
                         .frame(width: 44, height: 44)
@@ -73,15 +68,5 @@ public struct OutlinedPasswordField: View {
             .disabled(isDisabled)
             .accessibilityLabel(accessibilityLabel ?? title)
         }
-    }
-
-    private var binding: Binding<String> {
-        Binding(
-            get: { internalValue },
-            set: { newValue in
-                internalValue = newValue
-                onChanged(newValue)
-            }
-        )
     }
 }

@@ -10,5 +10,9 @@ public enum AppRoute: Hashable {
     case gate
     case welcome
     case login
+    case resetmail
+    case signup
+    case otp(email: String)
     case home
+
 }

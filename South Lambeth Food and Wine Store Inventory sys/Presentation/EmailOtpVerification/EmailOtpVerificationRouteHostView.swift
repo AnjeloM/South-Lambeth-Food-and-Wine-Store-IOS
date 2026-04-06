@@ -28,14 +28,16 @@ public struct EmailOtpVerificationRouteHostView: View {
             state: viewModel.state,
             onEvent: viewModel.send
         )
-        .onReceive(viewModel.effectsPublisher) { effect in
-            switch effect {
-            case .navigateBack:
-                onBack()
-            case .verifiedSuccessfully:
-                onVerified()
-            case let .showToast(message):
-                onToast(message)
+        .task {
+            for await effect in viewModel.effects {
+                switch effect {
+                case .navigateBack:
+                    onBack()
+                case .verifiedSuccessfully:
+                    onVerified()
+                case let .showToast(message):
+                    onToast(message)
+                }
             }
         }
     }

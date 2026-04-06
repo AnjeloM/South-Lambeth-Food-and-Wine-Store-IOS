@@ -51,31 +51,45 @@ public struct LoginScreen: View {
                 }
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 10)
-        .padding(.bottom, 18)
-        .onAppear { onEvent(.onAppear) }
+    }
+
+    // MARK: Binding that dispath events (keep UI dumb
+    private var emailBinding: Binding<String> {
+        Binding(
+            get: { state.email },
+            set: { onEvent(.emailChanged($0)) }
+        )
+    }
+
+    private var passwordBinding: Binding<String> {
+        Binding(
+            get: { state.password },
+            set: { onEvent(.passwordChanged($0)) }
+        )
     }
 
     // MARK: Top Bar
-
     private var topBar: some View {
-        ZStack {
-            HStack {
-                Button {
-                    onEvent(.backTapped)
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .frame(width: 44, height: 44, alignment: .leading)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
+        HStack(spacing: 12) {
+            Button {
+                onEvent(.onbackTapped)
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                    .frame(width: 44, height: 44)
             }
+            .buttonStyle(.plain)
+
+            Spacer()
+
             Text(state.title)
-                .font(AppTheme.Typography.title)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+
+            Spacer()
+
+            Color.clear.frame(width: 44, height: 44)
         }
         .padding(.top, 2)
         .padding(.bottom, 10)
@@ -88,20 +102,18 @@ public struct LoginScreen: View {
 
             OutlinedTextField(
                 title: state.emailLabel,
-                value: state.email,
+                text: emailBinding,
                 keyboard: .emailAddress,
                 textContentType: .emailAddress,
                 autocapitalization: .never,
                 accessibilityLabel: "Email",
-                onChanged: { onEvent(.emailChanged($0)) }
             )
 
             OutlinedPasswordField(
                 title: state.passwordLabel,
-                value: state.password,
+                text: passwordBinding,
                 isVisible: state.isPasswordVisible,
                 accessibilityLabel: "Password",
-                onChanged: { onEvent(.passwordChanged($0)) },
                 onToggleVisibility: { onEvent(.passwordVisibilityTapped) }
             )
             HStack {

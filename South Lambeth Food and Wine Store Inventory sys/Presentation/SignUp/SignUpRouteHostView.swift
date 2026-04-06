@@ -6,6 +6,7 @@ public struct SignUpRouteHostView: View {
 
     private let onNavigateBack: () -> Void
     private let onOpenURL: (URL) -> Void
+    private let onNavigateOtp: (String) -> Void
     private let onContinueWithGoogle: () -> Void
     private let onContinueWithApple: () -> Void
 
@@ -13,6 +14,7 @@ public struct SignUpRouteHostView: View {
         viewModel: SignUpViewModel? = nil,
         onNavigateBack: @escaping () -> Void,
         onOpenURL: @escaping (URL) -> Void,
+        onNavigateOtp: @escaping (String) -> Void,
         onContinueWithGoogle: @escaping () -> Void,
         onContinueWithApple: @escaping () -> Void
     ) {
@@ -20,12 +22,13 @@ public struct SignUpRouteHostView: View {
         _viewModel = StateObject(wrappedValue: vm)
         self.onNavigateBack = onNavigateBack
         self.onOpenURL = onOpenURL
+        self.onNavigateOtp = onNavigateOtp
         self.onContinueWithGoogle = onContinueWithGoogle
         self.onContinueWithApple = onContinueWithApple
     }
 
     public var body: some View {
-        SignUpScreen(state: viewModel.state, onEvent: viewModel.send)
+        SignUpScreen(state: viewModel.state, onEvent: viewModel.onEvent)
             .task {
                 for await effect in viewModel.effects {
                     switch effect {
@@ -33,6 +36,8 @@ public struct SignUpRouteHostView: View {
                         onNavigateBack()
                     case .openURL(let url):
                         onOpenURL(url)
+                    case .navigateToOtp(let email):
+                        onNavigateOtp(email)
                     case .continueWithGoogle:
                         onContinueWithGoogle()
                     case .continueWithApple:
@@ -44,4 +49,3 @@ public struct SignUpRouteHostView: View {
             }
     }
 }
-

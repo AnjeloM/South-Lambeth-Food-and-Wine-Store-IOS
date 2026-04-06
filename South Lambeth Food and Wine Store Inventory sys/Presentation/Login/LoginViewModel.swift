@@ -33,7 +33,7 @@ public final class LoginViewModel: ObservableObject {
             // No business login yet
             break
             
-        case .backTapped:
+        case .onbackTapped:
             emit(.navigateBack)
 
         case .emailChanged(let value):

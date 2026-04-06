@@ -4,7 +4,7 @@ public enum LoginUiEvent: Equatable {
     case onAppear
     
     // Top Bar
-    case backTapped
+    case onbackTapped
     
     // Inputs
     case emailChanged(String)

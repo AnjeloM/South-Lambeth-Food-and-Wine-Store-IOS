@@ -26,12 +26,14 @@ public struct SignUpScreen: View {
                 .ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
-                topBar
-                    .shadow(
-                        color: AppTheme.Colors.topBarShadowColor(scheme),
-                        radius: 8,
-                        x: 0, y: 6
-                    )
+                AppTopBar(
+                    title:  state.title,
+                    showBack: true,
+                    showsShadow: true,
+                    
+                ) {
+                    onEvent(.onbackTapped)
+                }
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 12) {
@@ -143,33 +145,6 @@ public struct SignUpScreen: View {
                 }
             }
         }
-    }
-
-    // MARK: Top Bar
-    private var topBar: some View {
-        HStack(spacing: 12) {
-            Button {
-                onEvent(.onbackTapped)
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(AppTheme.Colors.primaryText(scheme))
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            Text(state.title)
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(AppTheme.Colors.primaryText(scheme))
-
-            Spacer()
-
-            Color.clear.frame(width: 44, height: 44)
-        }
-        .padding(.top, 2)
-        .padding(.bottom, 8)
     }
 
     // MARK: Password Rules

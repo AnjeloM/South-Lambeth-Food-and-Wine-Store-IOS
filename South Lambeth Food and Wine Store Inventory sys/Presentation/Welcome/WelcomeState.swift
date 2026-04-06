@@ -7,7 +7,7 @@
 import Foundation
 
 public struct WelcomeUiState: Equatable {
-    public var headlineText: String = " Want to get store inventory? An app that makes your inventory process faster and easier"
+    public var headlineText: String = "Want to get store inventory? An app that makes your inventory process faster and easier"
     
     // Brand paragrph parts (to  highlight specific words
     public var brandHighlight1: String = "SOUTH LAMBETH"

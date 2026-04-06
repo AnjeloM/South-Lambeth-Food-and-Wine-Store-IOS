@@ -15,10 +15,16 @@ public struct AppRootView: View {
         self.sessionChecker = sessionChecker
     }
 
+    // Simple app-level toast state (placeholder UI)
+    @State private var toastMessage: String? = nil
+
     public var body: some View {
         NavigationStack {
             content
                 .animation(.easeInOut(duration: 0.50), value: route)
+                .overlay(alignment: .bottom) {
+                    toastOverlay
+                }
         }
     }
 
@@ -41,12 +47,36 @@ public struct AppRootView: View {
         case .login:
             LoginRouteHostView(
                 onNavigateBack: { route = .welcome },
-                onNavigateForgotPassword: { /* route = .forgotPassword (later) */
-                },
+                onNavigateForgotPassword: { route = .resetmail },
                 onNavigateSignUp: { route = .signup },
                 onNavigateHome: { route = .home }
             )
 
+        case .resetmail:
+            SendResetMailRouteHostView(
+                onNavigateBack: { route = .login },
+                onShowToast: { message in
+                    showToast(message)
+                }
+            )
+
+        case .signup:
+            SignUpRouteHostView(
+                onNavigateBack: { route = .login },
+                onOpenURL: { _ in /* later: open safari */ },
+                onNavigateOtp: { email in route = .otp(email: email) },
+                onContinueWithGoogle: { /* later: google sign-in */  },
+                onContinueWithApple: { /* later: apple sign-in */  }
+            )
+
+        case let .otp(email):
+            EmailOtpVerificationRouteHostView(
+                email: email,
+                service: DemoEmailOtpService(),
+                onBack: { route = .signup },
+                onVerified: { route = .home },
+                onToast: { message in showToast(message) }
+            )
         case .home:
             HomeRouteHostView {
                 route = .welcome
@@ -91,3 +121,4 @@ public struct AppRootView: View {
 #Preview("AppRoot = Signed In -> Home") {
     AppRootView(sessionChecker: DemoSessionChecker(signedIn: true))
 }
+

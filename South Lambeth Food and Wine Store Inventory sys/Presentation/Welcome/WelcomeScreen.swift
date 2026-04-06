@@ -57,7 +57,7 @@ public struct WelcomeScreen: View {
                     )
                 }
                 .padding(.horizontal, AppTheme.Layout.screenHPadding)
-                .padding(.bottom, AppTheme.Layout.bottomPadding)
+            
             }
         }
     }

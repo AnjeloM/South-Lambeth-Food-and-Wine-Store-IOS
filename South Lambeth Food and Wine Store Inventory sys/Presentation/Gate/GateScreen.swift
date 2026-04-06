@@ -11,7 +11,7 @@ public struct GateScreen: View {
     public let state: GateState
     public let onEvent: (GateEvent) -> Void
 
-    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorScheme) private var scheme
 
     public init(
         state: GateState,
@@ -23,7 +23,8 @@ public struct GateScreen: View {
 
     public var body: some View {
         ZStack {
-            background
+            AppTheme.Colors.background(scheme)
+                .ignoresSafeArea()
 
             VStack(spacing: 18) {
                 Spacer()
@@ -46,14 +47,14 @@ public struct GateScreen: View {
     }
 
     private var background: Color {
-        colorScheme == .dark ? .black : .white
+        scheme == .dark ? .black : .white
     }
     private var primaryText: Color {
-        colorScheme == .dark ? .white : .black
+        scheme == .dark ? .white : .black
     }
 
     private var highlight: Color {
-        if colorScheme == .dark {
+        if scheme == .dark {
             return Color(red: 0.95, green: 0.83, blue: 0.12)  // BrandYellow
         } else {
             return Color(red: 0.41, green: 0.36, blue: 0.75)  // BrandPurple

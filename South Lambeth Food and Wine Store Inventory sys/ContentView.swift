@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        AppRootView(sessionChecker: DemoSessionChecker(signedIn: true))
+        AppRootView(sessionChecker: DemoSessionChecker(signedIn: false))
     }
 }
 

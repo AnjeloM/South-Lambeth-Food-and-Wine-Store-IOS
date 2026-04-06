@@ -10,13 +10,17 @@ public struct HomeState: Equatable {
     public var title: String = "Home"
     public var subTitle: String = "You are signed in"
     public var signOutButtonText: String = "SIGN OUT (GO WELCOME)"
+    public var selectedTab: AppNavTab = .home
     public init() {}
 }
 
 public enum HomeEvent: Equatable {
     case onSignOutTapped
+    case tabChanged(AppNavTab)
+    case scanTapped
 }
 
 public enum HomeEffect: Equatable {
     case navigateWelcome
+    case openScanner
 }

@@ -24,6 +24,10 @@ public final class HomeViewModel: ObservableObject {
         switch event {
         case .onSignOutTapped:
             emit(.navigateWelcome)
+        case .tabChanged(let tab):
+            state.selectedTab = tab
+        case .scanTapped:
+            emit(.openScanner)
         }
     }
 

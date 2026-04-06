@@ -5,8 +5,8 @@ public struct LoginUiState: Equatable {
     public var title: String = "Login"
 
     // Inputs
-    public var email: String = ""
-    public var password: String = ""
+    public var email: String = "anjelom.90@gmail.com"
+    public var password: String = "MrAdmin@123"
     public var isPasswordVisible: Bool = false
 
     // UI enable/disable (computed by ViewModel, not by the view)

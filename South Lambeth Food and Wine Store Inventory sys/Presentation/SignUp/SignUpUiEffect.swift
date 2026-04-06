@@ -1,7 +1,13 @@
-//
-//  SingUpUiEffect.swift
-//  South Lambeth Food and Wine Store Inventory sys
-//
-//  Created by Mariyan Anjelo on 20/01/2026.
-//
+import Foundation
 
+public enum SignUpUiEffect: Equatable {
+    case navigateBack
+    case navigateToOtp(String) 
+    
+    // ON_OFF action (host handles these)
+    case continueWithGoogle
+    case continueWithApple
+    
+    case openURL(URL)
+    case showToast(String) // optinal placeholder
+}
