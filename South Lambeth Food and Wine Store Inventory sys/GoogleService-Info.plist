@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyDIcgYPz2UgVymn8tlw60hcQ6GFDOKpjuQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>412037277364</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.codebuket.South-Lambeth-Food-and-Wine-Store-Inventory-sys</string>
+	<key>PROJECT_ID</key>
+	<string>south-lambeth-food-store</string>
+	<key>STORAGE_BUCKET</key>
+	<string>south-lambeth-food-store.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:412037277364:ios:66d99ec3a4a6e3dee219e1</string>
+</dict>
+</plist>
