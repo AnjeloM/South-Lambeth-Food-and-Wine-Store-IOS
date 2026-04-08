@@ -343,15 +343,17 @@ private struct PrintSheetView: View {
     // MARK: - Hierarchical Row Renderer
 
     /// Recursively renders a node and all its descendants with depth-based indentation.
-    @ViewBuilder
-    private func printNodeRows(_ node: PrintOrderNode, depth: Int) -> some View {
-        printNodeRow(node, depth: depth)
-
+    private func printNodeRows(_ node: PrintOrderNode, depth: Int) -> AnyView {
+        var views: [AnyView] = []
+        // Current node row
+        views.append(AnyView(printNodeRow(node, depth: depth)))
+        // Children
         if let children = node.children {
-            ForEach(children) { child in
-                printNodeRows(child, depth: depth + 1)
+            for child in children {
+                views.append(printNodeRows(child, depth: depth + 1))
             }
         }
+        return AnyView(VStack(alignment: .leading, spacing: 0) { ForEach(Array(views.enumerated()), id: \.0) { _, v in v } })
     }
 
     @ViewBuilder
@@ -545,3 +547,4 @@ private struct PrintSheetView: View {
     PrintSheetView(printList: nil)
         .preferredColorScheme(.light)
 }
+
