@@ -3,8 +3,12 @@ import SwiftUI
 public struct HomeRouteHostView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showScanner = false
+    @State private var showSetPrintOrder = false
 
     private let onNavigateWelcome: () -> Void
+
+    // MARK: Firebase – pending: inject PrintOrderRepositoring here when Firebase is wired.
+    private let printOrderRepository: PrintOrderRepositoring = LocalPrintOrderRepository()
 
     public init(onNavigateWelcome: @escaping () -> Void) {
         self.onNavigateWelcome = onNavigateWelcome
@@ -19,10 +23,21 @@ public struct HomeRouteHostView: View {
                     onNavigateWelcome()
                 case .openScanner:
                     showScanner = true
+                case .openSetPrintOrder:
+                    showSetPrintOrder = true
                 }
             }
             .fullScreenCover(isPresented: $showScanner) {
                 ScannerRouteHostView(onClose: { showScanner = false })
+            }
+            .fullScreenCover(isPresented: $showSetPrintOrder) {
+                SetPrintOrderRouteHostView(
+                    repository: printOrderRepository,
+                    onClose: {
+                        showSetPrintOrder = false
+                        viewModel.onEvent(.onSetPrintOrderClosed)
+                    }
+                )
             }
     }
 }

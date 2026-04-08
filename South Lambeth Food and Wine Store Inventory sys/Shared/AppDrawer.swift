@@ -21,16 +21,26 @@ public struct AppDrawer: View {
 
     @Binding public var isOpen: Bool
     public let onLogout: () -> Void
+    /// Called when the user taps "Set Print Order" — wires through HomeViewModel/HomeEffect.
+    public let onSetPrintOrderTapped: () -> Void
+    /// The default print order list; used by PrintSheetView for real data.
+    public let defaultPrintList: PrintOrderList?
 
-    public init(isOpen: Binding<Bool>, onLogout: @escaping () -> Void) {
+    public init(
+        isOpen: Binding<Bool>,
+        onLogout: @escaping () -> Void,
+        onSetPrintOrderTapped: @escaping () -> Void = {},
+        defaultPrintList: PrintOrderList? = nil
+    ) {
         self._isOpen = isOpen
         self.onLogout = onLogout
+        self.onSetPrintOrderTapped = onSetPrintOrderTapped
+        self.defaultPrintList = defaultPrintList
     }
 
     @Environment(\.colorScheme) private var scheme
 
-    @State private var showPrintSheet       = false
-    @State private var showSetPrintOrder    = false
+    @State private var showPrintSheet = false
 
     private let drawerWidth: CGFloat = 300
 
@@ -56,10 +66,7 @@ public struct AppDrawer: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         // MARK: Sheets
         .sheet(isPresented: $showPrintSheet) {
-            PrintSheetView()
-        }
-        .sheet(isPresented: $showSetPrintOrder) {
-            SetPrintOrderSheetView()
+            PrintSheetView(printList: defaultPrintList)
         }
     }
 
@@ -87,11 +94,11 @@ public struct AppDrawer: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 4)
 
-                    // Set Print Order — opens order sheet
+                    // Set Print Order — navigates to full-screen editor via HomeViewModel
                     drawerRow(item: DrawerItem(
                         icon: "arrow.up.arrow.down.circle.fill",
                         label: "Set Print Order",
-                        action: { showSetPrintOrder = true }
+                        action: { onSetPrintOrderTapped() }
                     ))
 
                     // Print — opens print preview sheet
@@ -243,8 +250,16 @@ public struct AppDrawer: View {
 
 private struct PrintSheetView: View {
 
+    /// The default order list. When nil, falls back to sample data.
+    let printList: PrintOrderList?
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var scheme
+
+    /// Source nodes — real list or fallback.
+    private var nodes: [PrintOrderNode] {
+        printList?.nodes ?? fallbackNodes
+    }
 
     var body: some View {
         NavigationStack {
@@ -254,12 +269,12 @@ private struct PrintSheetView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
 
-                        // Header
+                        // Report header
                         VStack(alignment: .leading, spacing: 4) {
                             Text("SOUTH LAMBETH")
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundStyle(AppTheme.Colors.primaryText(scheme))
-                            Text("Food & Wine Store — Inventory Report")
+                            Text("Food & Wine Store — Print Order")
                                 .font(.system(size: 11))
                                 .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
                             Text(Date().formatted(date: .long, time: .shortened))
@@ -272,15 +287,9 @@ private struct PrintSheetView: View {
 
                         Divider()
 
-                        // Column headers
-                        printRowHeader
-
-                        Divider()
-
-                        // Sample rows
-                        ForEach(Array(samplePrintItems.enumerated()), id: \.offset) { index, item in
-                            printRow(item: item, shaded: index.isMultiple(of: 2))
-                            Divider().opacity(0.4)
+                        // Hierarchical rows
+                        ForEach(nodes) { node in
+                            printNodeRows(node, depth: 0)
                         }
                     }
                     .background(AppTheme.Colors.surface(scheme))
@@ -296,19 +305,15 @@ private struct PrintSheetView: View {
 
                 // MARK: Action Buttons
                 HStack(spacing: 12) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .font(.system(size: 16, weight: .medium))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(AppTheme.Colors.surfaceContainer(scheme))
-                    .foregroundStyle(AppTheme.Colors.primaryText(scheme))
-                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous))
+                    Button("Cancel") { dismiss() }
+                        .font(.system(size: 16, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(AppTheme.Colors.surfaceContainer(scheme))
+                        .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous))
 
-                    Button {
-                        presentPrintDialog()
-                    } label: {
+                    Button { presentPrintDialog() } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "printer.fill")
                             Text("Print")
@@ -335,130 +340,166 @@ private struct PrintSheetView: View {
         }
     }
 
-    // MARK: - Print Row Header
+    // MARK: - Hierarchical Row Renderer
 
-    private var printRowHeader: some View {
-        HStack {
-            Text("Item")
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Text("SKU")
-                .frame(width: 72, alignment: .leading)
-            Text("Stock")
-                .frame(width: 48, alignment: .trailing)
+    /// Recursively renders a node and all its descendants with depth-based indentation.
+    @ViewBuilder
+    private func printNodeRows(_ node: PrintOrderNode, depth: Int) -> some View {
+        printNodeRow(node, depth: depth)
+
+        if let children = node.children {
+            ForEach(children) { child in
+                printNodeRows(child, depth: depth + 1)
+            }
         }
-        .font(.system(size: 11, weight: .semibold))
-        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
     }
 
-    // MARK: - Print Row
-
     @ViewBuilder
-    private func printRow(item: (name: String, sku: String, stock: Int), shaded: Bool) -> some View {
-        HStack {
-            Text(item.name)
-                .font(.system(size: 12))
-                .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+    private func printNodeRow(_ node: PrintOrderNode, depth: Int) -> some View {
+        let indent = CGFloat(depth) * 14
+
+        HStack(spacing: 0) {
+            // Indentation spacer
+            if depth > 0 {
+                Spacer().frame(width: indent)
+
+                // Connector line hint
+                Rectangle()
+                    .fill(AppTheme.Colors.fieldBorderVariant(scheme))
+                    .frame(width: 1, height: 14)
+                    .padding(.trailing, 6)
+            }
+
+            // Label
+            Text(node.name)
+                .font(labelFont(for: depth))
+                .foregroundStyle(labelColor(for: depth))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .lineLimit(1)
-            Text(item.sku)
-                .font(.system(size: 11, design: .monospaced))
-                .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
-                .frame(width: 72, alignment: .leading)
-            Text("\(item.stock)")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(item.stock < 10
-                    ? AppTheme.Colors.error(scheme)
-                    : AppTheme.Colors.primaryText(scheme))
-                .frame(width: 48, alignment: .trailing)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // QTY — only on leaf items
+            if node.isLeaf, let qty = node.quantity {
+                Text("×\(qty)")
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                    .padding(.leading, 8)
+            }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .background(shaded ? AppTheme.Colors.surfaceContainer(scheme).opacity(0.5) : Color.clear)
+        .padding(.vertical, rowPadding(for: depth))
+        .background(rowBackground(for: depth))
+
+        // Divider after each row — thinner for deeper levels
+        Divider()
+            .opacity(depth == 0 ? 0.8 : 0.3)
+    }
+
+    // MARK: - Styling Helpers
+
+    private func labelFont(for depth: Int) -> Font {
+        switch depth {
+        case 0:  return .system(size: 12, weight: .bold)
+        case 1:  return .system(size: 12, weight: .semibold)
+        case 2:  return .system(size: 11, weight: .medium)
+        default: return .system(size: 11, weight: .regular)
+        }
+    }
+
+    private func labelColor(for depth: Int) -> Color {
+        switch depth {
+        case 0:  return AppTheme.Colors.primaryText(scheme)
+        case 1:  return AppTheme.Colors.primaryText(scheme)
+        case 2:  return AppTheme.Colors.secondaryText(scheme)
+        default: return AppTheme.Colors.secondaryText(scheme).opacity(0.85)
+        }
+    }
+
+    private func rowPadding(for depth: Int) -> CGFloat {
+        depth == 0 ? 10 : 7
+    }
+
+    @ViewBuilder
+    private func rowBackground(for depth: Int) -> some View {
+        switch depth {
+        case 0:
+            AppTheme.Colors.surfaceContainer(scheme)
+        case 1:
+            AppTheme.Colors.surfaceContainer(scheme).opacity(0.5)
+        default:
+            Color.clear
+        }
     }
 
     // MARK: - Native Print Dialog
 
     private func presentPrintDialog() {
         let info = UIPrintInfo(dictionary: nil)
-        info.jobName = "South Lambeth Inventory Report"
+        info.jobName = "South Lambeth Print Order"
         info.outputType = .general
 
-        let text = samplePrintItems
-            .map { "\($0.name)\t\($0.sku)\t\($0.stock) units" }
-            .joined(separator: "\n")
-        let header = "SOUTH LAMBETH — Food & Wine Store\nInventory Report — \(Date().formatted())\n\n"
+        let body = buildPrintText(nodes: nodes, depth: 0)
+        let header = "SOUTH LAMBETH — Food & Wine Store\nPrint Order — \(Date().formatted())\n\n"
 
         let controller = UIPrintInteractionController.shared
         controller.printInfo = info
-        controller.printFormatter = UISimpleTextPrintFormatter(text: header + text)
+        controller.printFormatter = UISimpleTextPrintFormatter(text: header + body)
         controller.present(animated: true)
     }
 
-    // MARK: - Sample Data (replace with real inventory when data layer is wired)
-
-    private let samplePrintItems: [(name: String, sku: String, stock: Int)] = [
-        ("Merlot Red Wine 75cl",      "WN-001", 48),
-        ("Heineken 330ml",            "BR-012", 120),
-        ("Grey Goose Vodka 70cl",     "SP-034", 7),
-        ("Coca-Cola 2L",              "SD-007", 60),
-        ("Prosecco Brut 75cl",        "WN-022", 3),
-        ("Walkers Crisps (Box)",      "SN-005", 24),
-        ("Jack Daniel's 70cl",        "SP-011", 15),
-        ("San Pellegrino 500ml",      "SD-019", 42),
-    ]
-}
-
-// MARK: - Set Print Order Sheet
-
-// MARK: Firebase – pending
-// This screen will let users reorder items to control how they appear in the printed report.
-// Implement with SwiftUI List drag-to-reorder once inventory data layer is wired.
-private struct SetPrintOrderSheetView: View {
-
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                Spacer()
-
-                Image(systemName: "arrow.up.arrow.down.circle")
-                    .font(.system(size: 56))
-                    .foregroundStyle(AppTheme.Colors.accent(scheme))
-
-                VStack(spacing: 8) {
-                    Text("Set Print Order")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(AppTheme.Colors.primaryText(scheme))
-                    Text("Drag items to set the order in which\nthey appear on printed reports.")
-                        .font(.system(size: 14))
-                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
-                        .multilineTextAlignment(.center)
-                }
-
-                Text("Coming soon")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(AppTheme.Colors.buttonText(scheme))
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
-                    .background(AppTheme.Colors.accent(scheme))
-                    .clipShape(Capsule())
-
-                Spacer()
+    /// Recursively builds indented plain-text for the native print dialog.
+    private func buildPrintText(nodes: [PrintOrderNode], depth: Int) -> String {
+        let indent = String(repeating: "    ", count: depth)
+        return nodes.map { node in
+            let qtyStr = node.isLeaf ? (node.quantity.map { "  ×\($0)" } ?? "") : ""
+            let line = "\(indent)\(node.name)\(qtyStr)"
+            if let children = node.children, !children.isEmpty {
+                return line + "\n" + buildPrintText(nodes: children, depth: depth + 1)
             }
-            .padding(AppTheme.Layout.screenHPadding)
-            .background(AppTheme.Colors.background(scheme).ignoresSafeArea())
-            .navigationTitle("Set Print Order")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
-            }
-        }
+            return line
+        }.joined(separator: "\n")
+    }
+
+    // MARK: - Fallback sample data
+    // MARK: Firebase – pending: remove once real inventory quantities are available.
+
+    private var fallbackNodes: [PrintOrderNode] {
+        [
+            PrintOrderNode(name: "Soft Drinks", level: .mainCategory, children: [
+                PrintOrderNode(name: "500ml Bottle", level: .subcategory, children: [
+                    PrintOrderNode(name: "Coca Cola", level: .group, children: [
+                        PrintOrderNode(name: "Coca Cola Original 500ml", level: .item, quantity: 1),
+                        PrintOrderNode(name: "Coca Cola Zero Sugar 500ml", level: .item, quantity: 1)
+                    ]),
+                    PrintOrderNode(name: "Lucozade", level: .group, children: [
+                        PrintOrderNode(name: "Lucozade Orange 500ml", level: .item, quantity: 1)
+                    ])
+                ]),
+                PrintOrderNode(name: "2L Bottle", level: .subcategory, children: [
+                    PrintOrderNode(name: "Soft Drinks", level: .group, children: [
+                        PrintOrderNode(name: "7up 2L", level: .item, quantity: 1)
+                    ])
+                ])
+            ]),
+            PrintOrderNode(name: "Energy Drinks", level: .mainCategory, children: [
+                PrintOrderNode(name: "Energy Can", level: .subcategory, children: [
+                    PrintOrderNode(name: "Red Bull", level: .group, children: [
+                        PrintOrderNode(name: "Red Bull Original 250ml", level: .item, quantity: 2)
+                    ]),
+                    PrintOrderNode(name: "Monster", level: .group, children: [
+                        PrintOrderNode(name: "Monster Energy 500ml", level: .item, quantity: 1)
+                    ])
+                ])
+            ]),
+            PrintOrderNode(name: "Still Water", level: .mainCategory, children: [
+                PrintOrderNode(name: "Water Still", level: .subcategory, children: [
+                    PrintOrderNode(name: "Water", level: .group, children: [
+                        PrintOrderNode(name: "Evian 1.5L", level: .item, quantity: 5),
+                        PrintOrderNode(name: "Ribena Blackcurrant 500ml", level: .item, quantity: 1)
+                    ])
+                ])
+            ])
+        ]
     }
 }
 
@@ -491,11 +532,16 @@ private struct SetPrintOrderSheetView: View {
 }
 
 #Preview("Print Sheet - Light") {
-    PrintSheetView()
+    PrintSheetView(printList: DefaultPrintOrderData.defaultList)
         .preferredColorScheme(.light)
 }
 
 #Preview("Print Sheet - Dark") {
-    PrintSheetView()
+    PrintSheetView(printList: DefaultPrintOrderData.defaultList)
         .preferredColorScheme(.dark)
+}
+
+#Preview("Print Sheet - No List") {
+    PrintSheetView(printList: nil)
+        .preferredColorScheme(.light)
 }

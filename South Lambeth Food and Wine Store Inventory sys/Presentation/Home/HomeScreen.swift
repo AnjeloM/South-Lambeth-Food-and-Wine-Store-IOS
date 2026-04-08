@@ -36,9 +36,12 @@ public struct HomeScreen: View {
             .navigationBarBackButtonHidden(true)
 
             // MARK: Drawer overlay
-            AppDrawer(isOpen: $isDrawerOpen) {
-                onEvent(.onSignOutTapped)
-            }
+            AppDrawer(
+                isOpen: $isDrawerOpen,
+                onLogout: { onEvent(.onSignOutTapped) },
+                onSetPrintOrderTapped: { onEvent(.openSetPrintOrder) },
+                defaultPrintList: state.defaultPrintList
+            )
         }
     }
 

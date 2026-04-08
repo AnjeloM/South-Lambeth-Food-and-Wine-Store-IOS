@@ -1,0 +1,358 @@
+{
+  "_comment": "Reference JSON mirroring DefaultPrintOrderData.swift. Structure: mainCategory > subcategory > group > item. Numeric prefixes from sample_print_list.pdf have been removed.",
+  "lists": [
+    {
+      "name": "Default Print Order",
+      "nodes": [
+        {
+          "name": "Small Cans",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "300ml Can",
+              "level": "subcategory",
+              "children": [
+                { "name": "7up",       "level": "group", "children": [{ "name": "7up Zero Sugar 330ml",       "level": "item", "quantity": 2 }] },
+                { "name": "Coca Cola", "level": "group", "children": [{ "name": "Coca Cola Zero Sugar 330ml", "level": "item", "quantity": 2 }] },
+                { "name": "Dr Pepper", "level": "group", "children": [{ "name": "Dr Pepper 330ml",            "level": "item", "quantity": 2 }] },
+                { "name": "Fanta",     "level": "group", "children": [
+                    { "name": "Fanta Fruit Twist 330ml", "level": "item", "quantity": 1 },
+                    { "name": "Fanta Orange 330ml",      "level": "item", "quantity": 2 }
+                ]},
+                { "name": "Merinda",   "level": "group", "children": [{ "name": "Merinda Strawberry 330ml", "level": "item", "quantity": 1 }] },
+                { "name": "Soft Drink","level": "group", "children": [{ "name": "Mountain Dew 330ml",        "level": "item", "quantity": 1 }] },
+                { "name": "Tango",     "level": "group", "children": [{ "name": "Tango Apple 330ml",         "level": "item", "quantity": 1 }] }
+              ]
+            },
+            {
+              "name": "Glass Bottle",
+              "level": "subcategory",
+              "children": [
+                { "name": "Purdey's", "level": "group", "children": [{ "name": "Purdey's 330ml", "level": "item", "quantity": 1 }] }
+              ]
+            },
+            {
+              "name": "Nurishment Cans",
+              "level": "subcategory",
+              "children": [
+                { "name": "Nurishment", "level": "group", "children": [
+                    { "name": "Nurishment Chocolate 330ml", "level": "item", "quantity": 2 },
+                    { "name": "Nurishment Vanilla 330ml",   "level": "item", "quantity": 1 }
+                ]}
+              ]
+            },
+            {
+              "name": "Sanpellegrino Cans",
+              "level": "subcategory",
+              "children": [
+                { "name": "Sanpellegrino", "level": "group", "children": [
+                    { "name": "Sanpellegrino Aranciata Rossa 330ml",    "level": "item", "quantity": 1 },
+                    { "name": "Sanpellegrino Limone & Menta 330ml",     "level": "item", "quantity": 1 },
+                    { "name": "Sanpellegrino Melogreno & Arancia 330ml","level": "item", "quantity": 1 },
+                    { "name": "Sanpellegrino Pompelmo 330ml",           "level": "item", "quantity": 1 }
+                ]}
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Standard Bottles",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "500ml Bottle",
+              "level": "subcategory",
+              "children": [
+                { "name": "Arizona",  "level": "group", "children": [{ "name": "Arizona Green Tea 500ml", "level": "item", "quantity": 1 }] },
+                { "name": "Bigga",    "level": "group", "children": [
+                    { "name": "Bigga Fruit Punch 500ml", "level": "item", "quantity": 1 },
+                    { "name": "Bigga Grape 500ml",       "level": "item", "quantity": 1 },
+                    { "name": "Bigga Orange 500ml",      "level": "item", "quantity": 1 },
+                    { "name": "Bigga Scream Soda 500ml", "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Boost",    "level": "group", "children": [{ "name": "Boost 500ml", "level": "item", "quantity": 2 }] },
+                { "name": "Coca Cola","level": "group", "children": [
+                    { "name": "Coca Cola Cherry 500ml",      "level": "item", "quantity": 1 },
+                    { "name": "Coca Cola Diet 500ml",        "level": "item", "quantity": 1 },
+                    { "name": "Coca Cola Original 500ml",    "level": "item", "quantity": 1 },
+                    { "name": "Coca Cola Zero Sugar 500ml",  "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Fanta",    "level": "group", "children": [
+                    { "name": "Fanta Mango 500ml",  "level": "item", "quantity": 1 },
+                    { "name": "Fanta Orange 500ml", "level": "item", "quantity": 1 }
+                ]},
+                { "name": "KA",       "level": "group", "children": [
+                    { "name": "KA Fruit Punch 500ml", "level": "item", "quantity": 1 },
+                    { "name": "KA Pineapple 500ml",   "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Lucozade", "level": "group", "children": [
+                    { "name": "Lucozade Orange 500ml",        "level": "item", "quantity": 1 },
+                    { "name": "Lucozade Original 500ml",      "level": "item", "quantity": 1 },
+                    { "name": "Lucozade Pink Lemonade 500ml", "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Soft Drink","level": "group", "children": [
+                    { "name": "Aloe Original 500ml",          "level": "item", "quantity": 1 },
+                    { "name": "Dr Pepper 500ml",              "level": "item", "quantity": 1 },
+                    { "name": "Iron-Bru 500ml",               "level": "item", "quantity": 1 },
+                    { "name": "Lipton Peach Tea 500ml",       "level": "item", "quantity": 1 },
+                    { "name": "Lipton Tropical Ice Tea 500ml","level": "item", "quantity": 1 },
+                    { "name": "Mogo Mogu Coconut",            "level": "item", "quantity": 1 },
+                    { "name": "Mountain Dew 500ml",           "level": "item", "quantity": 1 },
+                    { "name": "Oasis Citrus Punch 500ml",     "level": "item", "quantity": 1 },
+                    { "name": "Oasis Summer Fruits 500ml",    "level": "item", "quantity": 1 },
+                    { "name": "Ribena Blackcurrant 500ml",    "level": "item", "quantity": 1 },
+                    { "name": "Ribena Strawberry 500ml",      "level": "item", "quantity": 1 }
+                ]}
+              ]
+            },
+            {
+              "name": "Dairy Drinks",
+              "level": "subcategory",
+              "children": [
+                { "name": "Dairy", "level": "group", "children": [
+                    { "name": "Galaxy 350ml",          "level": "item", "quantity": 1 },
+                    { "name": "Mars 350ml",            "level": "item", "quantity": 1 },
+                    { "name": "Snickers 350ml",        "level": "item", "quantity": 1 },
+                    { "name": "Yazoo Strawberry 400ml","level": "item", "quantity": 1 },
+                    { "name": "Yazoo Vanilla 400ml",   "level": "item", "quantity": 1 }
+                ]}
+              ]
+            },
+            {
+              "name": "Sports Cap",
+              "level": "subcategory",
+              "children": [
+                { "name": "Lucozade",  "level": "group", "children": [
+                    { "name": "Lucozade Caribbean Burst 500ml Sports Cap", "level": "item", "quantity": 1 },
+                    { "name": "Lucozade Ice Kick 500ml Sports Cap",        "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Power EDE", "level": "group", "children": [
+                    { "name": "Power EDE Berry & Tropical Fruit Sports Cap 500ml", "level": "item", "quantity": 1 }
+                ]}
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Glass Bottles",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "Glass Bottle",
+              "level": "subcategory",
+              "children": [
+                { "name": "Appletiser", "level": "group", "children": [{ "name": "Appletiser 275ml", "level": "item", "quantity": 2 }] },
+                { "name": "Snapple",    "level": "group", "children": [
+                    { "name": "Snapple Apple 473ml",               "level": "item", "quantity": 1 },
+                    { "name": "Snapple Fruit Punch 473ml",         "level": "item", "quantity": 1 },
+                    { "name": "Snapple Juicy Peachy Iced Tea 473ml","level": "item", "quantity": 1 },
+                    { "name": "Snapple Kiwi Meets Strawberry 473ml","level": "item", "quantity": 1 },
+                    { "name": "Snapple Mango Madness 473ml",       "level": "item", "quantity": 1 },
+                    { "name": "Snapple Pink Lemonade 473ml",       "level": "item", "quantity": 1 }
+                ]}
+              ]
+            },
+            {
+              "name": "Soft Drinks",
+              "level": "subcategory",
+              "children": [
+                { "name": "Supermalt",        "level": "group", "children": [{ "name": "Supermalt 330ml",                        "level": "item", "quantity": 1 }] },
+                { "name": "Tropical Rhythms", "level": "group", "children": [{ "name": "Tropical Rhythms Pineapple Ginger 475ml","level": "item", "quantity": 1 }] },
+                { "name": "Tropical Vibes",   "level": "group", "children": [{ "name": "Tropical Vibes Mango Carrot 300ml",      "level": "item", "quantity": 1 }] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Energy Drinks",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "Energy Can",
+              "level": "subcategory",
+              "children": [
+                { "name": "Boost",      "level": "group", "children": [
+                    { "name": "Boost Blue Raspberry 250ml", "level": "item", "quantity": 1 },
+                    { "name": "Boost Original 500ml",       "level": "item", "quantity": 1 },
+                    { "name": "Boost Sour Cherry 250ml",    "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Monster",    "level": "group", "children": [
+                    { "name": "Monster Energy 500ml",        "level": "item", "quantity": 1 },
+                    { "name": "Monster Pacific Punch 500ml", "level": "item", "quantity": 1 },
+                    { "name": "Monster Pipeline Punch 500ml","level": "item", "quantity": 1 },
+                    { "name": "Monster Ultra Paradise 500ml","level": "item", "quantity": 1 },
+                    { "name": "Monster VR46 500ml",          "level": "item", "quantity": 1 },
+                    { "name": "Monster Zero Sugar 500ml",    "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Red Bull",   "level": "group", "children": [
+                    { "name": "Red Bull Apricot-Strawberry 250ml", "level": "item", "quantity": 1 },
+                    { "name": "Red Bull Blue Edition 250ml",       "level": "item", "quantity": 1 },
+                    { "name": "Red Bull Original 355ml",           "level": "item", "quantity": 2 },
+                    { "name": "Red Bull Original 473ml",           "level": "item", "quantity": 2 },
+                    { "name": "Red Bull Red Edition 250ml",        "level": "item", "quantity": 1 },
+                    { "name": "Red Bull Sugar Free 250ml",         "level": "item", "quantity": 1 },
+                    { "name": "Red Bull Tropical Edition 250ml",   "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Relentless", "level": "group", "children": [{ "name": "Relentless Original 500ml",       "level": "item", "quantity": 1 }] },
+                { "name": "Soft Drink", "level": "group", "children": [{ "name": "Tropical Sun Coconut Water 500ml","level": "item", "quantity": 1 }] }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Large Format",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "1L Bottle",
+              "level": "subcategory",
+              "children": [
+                { "name": "Lucozade",    "level": "group", "children": [
+                    { "name": "Lucozade Orange 1L",   "level": "item", "quantity": 1 },
+                    { "name": "Lucozade Original 1L", "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Soft Drinks", "level": "group", "children": [{ "name": "Boost 1L", "level": "item", "quantity": 2 }] }
+              ]
+            },
+            {
+              "name": "1.5L Bottle",
+              "level": "subcategory",
+              "children": [
+                { "name": "Soft Drinks", "level": "group", "children": [{ "name": "Tropical Sun Aloe Vera 1.5L", "level": "item", "quantity": 1 }] }
+              ]
+            },
+            {
+              "name": "1.75L Bottle",
+              "level": "subcategory",
+              "children": [
+                { "name": "Coca Cola", "level": "group", "children": [
+                    { "name": "Coca Cola Cherry 1.75L",   "level": "item", "quantity": 1 },
+                    { "name": "Coca Cola Original 1.75L", "level": "item", "quantity": 15 }
+                ]}
+              ]
+            },
+            {
+              "name": "600ml",
+              "level": "subcategory",
+              "children": [
+                { "name": "Soft Drinks", "level": "group", "children": [{ "name": "Ribena 600ml", "level": "item", "quantity": 1 }] }
+              ]
+            },
+            {
+              "name": "750ml Bottle",
+              "level": "subcategory",
+              "children": [
+                { "name": "Soft Drinks", "level": "group", "children": [
+                    { "name": "Robinsons Apple & Blackcurrant 750ml", "level": "item", "quantity": 1 },
+                    { "name": "Robinsons Summer Fruits 750ml",        "level": "item", "quantity": 1 }
+                ]}
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Two Litre Bottles",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "2L Bottle",
+              "level": "subcategory",
+              "children": [
+                { "name": "Coca Cola",   "level": "group", "children": [
+                    { "name": "Coca Cola Diet 2L",       "level": "item", "quantity": 1 },
+                    { "name": "Coca Cola Zero Sugar 2L", "level": "item", "quantity": 2 }
+                ]},
+                { "name": "Fanta",       "level": "group", "children": [
+                    { "name": "Fanta Fruit Twist 2L", "level": "item", "quantity": 1 },
+                    { "name": "Fanta Grape 2L",       "level": "item", "quantity": 1 },
+                    { "name": "Fanta Mango 2L",       "level": "item", "quantity": 1 }
+                ]},
+                { "name": "KA",          "level": "group", "children": [
+                    { "name": "KA Black Grape 2L", "level": "item", "quantity": 1 },
+                    { "name": "KA Fruit Punch 2L", "level": "item", "quantity": 1 },
+                    { "name": "KA Pineapple 2L",   "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Soft Drinks", "level": "group", "children": [
+                    { "name": "7up 2L",                                 "level": "item", "quantity": 1 },
+                    { "name": "Dr Pepper 2L",                           "level": "item", "quantity": 1 },
+                    { "name": "Fanta Orange 2L",                        "level": "item", "quantity": 1 },
+                    { "name": "Rubicon Mango 2L",                       "level": "item", "quantity": 1 },
+                    { "name": "Schweppes Slimline Classic Lemonade 2L", "level": "item", "quantity": 1 },
+                    { "name": "Sprite 2L",                              "level": "item", "quantity": 2 }
+                ]}
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Still Water",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "Water Still",
+              "level": "subcategory",
+              "children": [
+                { "name": "Water", "level": "group", "children": [
+                    { "name": "Evian 1.5L", "level": "item", "quantity": 5 },
+                    { "name": "Saka 500ml", "level": "item", "quantity": 5 }
+                ]}
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Sparkling Water",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "Water",
+              "level": "subcategory",
+              "children": [
+                { "name": "Water", "level": "group", "children": [
+                    { "name": "Highland Spring Sparkling 1.5L",   "level": "item", "quantity": 2 },
+                    { "name": "Highland Spring Sparkling 500ml",  "level": "item", "quantity": 1 },
+                    { "name": "Perrier 330ml",                    "level": "item", "quantity": 1 },
+                    { "name": "Perrier 750ml",                    "level": "item", "quantity": 2 },
+                    { "name": "S.Pellegrino Sparkling Water 750ml","level": "item", "quantity": 2 }
+                ]}
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Cartons",
+          "level": "mainCategory",
+          "children": [
+            {
+              "name": "Carton",
+              "level": "subcategory",
+              "children": [
+                { "name": "Just Juice",     "level": "group", "children": [{ "name": "It's Just Juice Apples 1L", "level": "item", "quantity": 2 }] },
+                { "name": "KA",             "level": "group", "children": [
+                    { "name": "KA Black Grape 1L", "level": "item", "quantity": 1 },
+                    { "name": "KA Fruit Punch 1L", "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Ribena",         "level": "group", "children": [{ "name": "Ribena Blackcurrant 1L", "level": "item", "quantity": 1 }] },
+                { "name": "Rubicon",        "level": "group", "children": [
+                    { "name": "Rubicon Mango 1L",        "level": "item", "quantity": 1 },
+                    { "name": "Rubicon Passion Fruit 1L","level": "item", "quantity": 1 }
+                ]},
+                { "name": "Soft Drink",     "level": "group", "children": [{ "name": "Vita Coco Coconut Water 1L", "level": "item", "quantity": 2 }] },
+                { "name": "Sun Exotic",     "level": "group", "children": [
+                    { "name": "Rubicon Tropical 1L",              "level": "item", "quantity": 1 },
+                    { "name": "Sun Exotic Citrus Twist 1L",       "level": "item", "quantity": 1 },
+                    { "name": "Sun Exotic Pineapple & Coconut 1L","level": "item", "quantity": 1 }
+                ]},
+                { "name": "Sunpride",       "level": "group", "children": [
+                    { "name": "Sunpride Apple 1L",    "level": "item", "quantity": 1 },
+                    { "name": "Sunpride Tropical 1L", "level": "item", "quantity": 1 }
+                ]},
+                { "name": "Tropical Vibes", "level": "group", "children": [{ "name": "Tropical Vibes Fruit Punch 1L", "level": "item", "quantity": 1 }] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
