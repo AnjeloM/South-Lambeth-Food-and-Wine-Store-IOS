@@ -7,12 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D77E12592F22610A002B9874 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D77E12582F22610A002B9874 /* FirebaseAnalytics */; };
-		D77E125B2F22610A002B9874 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D77E125A2F22610A002B9874 /* FirebaseAuth */; };
-		D77E125D2F22610A002B9874 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = D77E125C2F22610A002B9874 /* FirebaseDatabase */; };
-		D77E125F2F22610A002B9874 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D77E125E2F22610A002B9874 /* FirebaseFirestore */; };
-		D77E12612F22610A002B9874 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = D77E12602F22610A002B9874 /* FirebaseFunctions */; };
-		D77E12632F22610A002B9874 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = D77E12622F22610A002B9874 /* FirebaseStorage */; };
+		D78A19642F869A29008F7DE4 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D78A19632F869A29008F7DE4 /* FirebaseCore */; };
+		D78A19662F869A47008F7DE4 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D78A19652F869A47008F7DE4 /* FirebaseAuth */; };
+		D78A19682F869A4E008F7DE4 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D78A19672F869A4E008F7DE4 /* FirebaseFirestore */; };
+		D78A196A2F869A52008F7DE4 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = D78A19692F869A52008F7DE4 /* FirebaseDatabase */; };
+		D78A196C2F869A56008F7DE4 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = D78A196B2F869A56008F7DE4 /* FirebaseFunctions */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,12 +60,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D77E125D2F22610A002B9874 /* FirebaseDatabase in Frameworks */,
-				D77E125F2F22610A002B9874 /* FirebaseFirestore in Frameworks */,
-				D77E12612F22610A002B9874 /* FirebaseFunctions in Frameworks */,
-				D77E12592F22610A002B9874 /* FirebaseAnalytics in Frameworks */,
-				D77E125B2F22610A002B9874 /* FirebaseAuth in Frameworks */,
-				D77E12632F22610A002B9874 /* FirebaseStorage in Frameworks */,
+				D78A19642F869A29008F7DE4 /* FirebaseCore in Frameworks */,
+				D78A19662F869A47008F7DE4 /* FirebaseAuth in Frameworks */,
+				D78A196C2F869A56008F7DE4 /* FirebaseFunctions in Frameworks */,
+				D78A196A2F869A52008F7DE4 /* FirebaseDatabase in Frameworks */,
+				D78A19682F869A4E008F7DE4 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,12 +85,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D78A19622F869A29008F7DE4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		D7901BAF2F1B1B97008B3E60 = {
 			isa = PBXGroup;
 			children = (
 				D7901BBA2F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */,
 				D7901BC82F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysTests */,
 				D7901BD22F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests */,
+				D78A19622F869A29008F7DE4 /* Frameworks */,
 				D7901BB92F1B1B97008B3E60 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -127,12 +133,11 @@
 			);
 			name = "South Lambeth Food and Wine Store Inventory sys";
 			packageProductDependencies = (
-				D77E12582F22610A002B9874 /* FirebaseAnalytics */,
-				D77E125A2F22610A002B9874 /* FirebaseAuth */,
-				D77E125C2F22610A002B9874 /* FirebaseDatabase */,
-				D77E125E2F22610A002B9874 /* FirebaseFirestore */,
-				D77E12602F22610A002B9874 /* FirebaseFunctions */,
-				D77E12622F22610A002B9874 /* FirebaseStorage */,
+				D78A19632F869A29008F7DE4 /* FirebaseCore */,
+				D78A19652F869A47008F7DE4 /* FirebaseAuth */,
+				D78A19672F869A4E008F7DE4 /* FirebaseFirestore */,
+				D78A19692F869A52008F7DE4 /* FirebaseDatabase */,
+				D78A196B2F869A56008F7DE4 /* FirebaseFunctions */,
 			);
 			productName = "South Lambeth Food and Wine Store Inventory sys";
 			productReference = D7901BB82F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys.app */;
@@ -192,7 +197,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					D7901BB72F1B1B97008B3E60 = {
 						CreatedOnToolsVersion = 26.2;
@@ -217,7 +222,7 @@
 			mainGroup = D7901BAF2F1B1B97008B3E60;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				D77E12572F22610A002B9874 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				D78A19612F868A10008F7DE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D7901BB92F1B1B97008B3E60 /* Products */;
@@ -352,6 +357,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -409,6 +415,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -606,46 +613,41 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D77E12572F22610A002B9874 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+		D78A19612F868A10008F7DE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 12.8.0;
+				minimumVersion = 12.12.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		D77E12582F22610A002B9874 /* FirebaseAnalytics */ = {
+		D78A19632F869A29008F7DE4 /* FirebaseCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D77E12572F22610A002B9874 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalytics;
+			package = D78A19612F868A10008F7DE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
 		};
-		D77E125A2F22610A002B9874 /* FirebaseAuth */ = {
+		D78A19652F869A47008F7DE4 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D77E12572F22610A002B9874 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D78A19612F868A10008F7DE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
 		};
-		D77E125C2F22610A002B9874 /* FirebaseDatabase */ = {
+		D78A19672F869A4E008F7DE4 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D77E12572F22610A002B9874 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseDatabase;
-		};
-		D77E125E2F22610A002B9874 /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D77E12572F22610A002B9874 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D78A19612F868A10008F7DE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
 		};
-		D77E12602F22610A002B9874 /* FirebaseFunctions */ = {
+		D78A19692F869A52008F7DE4 /* FirebaseDatabase */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D77E12572F22610A002B9874 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFunctions;
+			package = D78A19612F868A10008F7DE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
 		};
-		D77E12622F22610A002B9874 /* FirebaseStorage */ = {
+		D78A196B2F869A56008F7DE4 /* FirebaseFunctions */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D77E12572F22610A002B9874 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseStorage;
+			package = D78A19612F868A10008F7DE4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

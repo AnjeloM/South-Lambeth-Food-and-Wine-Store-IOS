@@ -38,12 +38,15 @@ public struct AppRootView: View {
             }
 
         case .welcome:
-            WelcomeRouteHostView { welcomeRoute in
-                switch welcomeRoute {
-                case .signIn:
-                    route = .login
+            WelcomeRouteHostView(
+                testEmailSender: FirebaseCallableTestEmailSender(),
+                onNavigate: { welcomeRoute in
+                    switch welcomeRoute {
+                    case .signIn:
+                        route = .login
+                    }
                 }
-            }
+            )
 
         case .login:
             LoginRouteHostView(

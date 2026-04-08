@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyDIcgYPz2UgVymn8tlw60hcQ6GFDOKpjuQ</string>
+	<string>AIzaSyBwRH1fjW1xYZnBQFJKQRd_eiqQLl4dnzg</string>
 	<key>GCM_SENDER_ID</key>
-	<string>412037277364</string>
+	<string>575446138987</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.codebuket.South-Lambeth-Food-and-Wine-Store-Inventory-sys</string>
 	<key>PROJECT_ID</key>
-	<string>south-lambeth-food-store</string>
+	<string>inventory-app-352dc</string>
 	<key>STORAGE_BUCKET</key>
-	<string>south-lambeth-food-store.firebasestorage.app</string>
+	<string>inventory-app-352dc.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:412037277364:ios:66d99ec3a4a6e3dee219e1</string>
+	<string>1:575446138987:ios:bb90b45eb6947d6b34f12e</string>
 </dict>
 </plist>
