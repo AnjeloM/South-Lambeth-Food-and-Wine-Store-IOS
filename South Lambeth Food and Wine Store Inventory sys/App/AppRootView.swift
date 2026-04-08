@@ -8,11 +8,12 @@ import SwiftUI
 
 public struct AppRootView: View {
     @State private var route: AppRoute = .gate
-    // Demo seesion checker for now. Replace with firebaseSessionChecker later.
-    private let sessionChecker: SessionChecking
+    // MARK: Firebase – pending
+    // Replace LocalSessionManager with FirebaseSessionManager once Firebase Auth is wired.
+    private let sessionManager: SessionManaging
 
-    public init(sessionChecker: SessionChecking) {
-        self.sessionChecker = sessionChecker
+    public init(sessionManager: SessionManaging) {
+        self.sessionManager = sessionManager
     }
 
     // Simple app-level toast state (placeholder UI)
@@ -32,7 +33,7 @@ public struct AppRootView: View {
     private var content: some View {
         switch route {
         case .gate:
-            GateRouteHostView(sessionChecker: sessionChecker) { gateRoute in
+            GateRouteHostView(sessionChecker: sessionManager) { gateRoute in
                 route = (gateRoute == .home) ? .home : .welcome
             }
 
@@ -49,7 +50,10 @@ public struct AppRootView: View {
                 onNavigateBack: { route = .welcome },
                 onNavigateForgotPassword: { route = .resetmail },
                 onNavigateSignUp: { route = .signup },
-                onNavigateHome: { route = .home }
+                onNavigateHome: {
+                    sessionManager.saveSession()
+                    route = .home
+                }
             )
 
         case .resetmail:
@@ -74,11 +78,15 @@ public struct AppRootView: View {
                 email: email,
                 service: DemoEmailOtpService(),
                 onBack: { route = .signup },
-                onVerified: { route = .home },
+                onVerified: {
+                    sessionManager.saveSession()
+                    route = .home
+                },
                 onToast: { message in showToast(message) }
             )
         case .home:
             HomeRouteHostView {
+                sessionManager.clearSession()
                 route = .welcome
             }
         }
@@ -115,10 +123,10 @@ public struct AppRootView: View {
 }
 
 #Preview("AppRoot - Signed Out -> Welcome") {
-    AppRootView(sessionChecker: DemoSessionChecker(signedIn: false))
+    AppRootView(sessionManager: LocalSessionManager())
 }
 
 #Preview("AppRoot = Signed In -> Home") {
-    AppRootView(sessionChecker: DemoSessionChecker(signedIn: true))
+    AppRootView(sessionManager: LocalSessionManager())
 }
 

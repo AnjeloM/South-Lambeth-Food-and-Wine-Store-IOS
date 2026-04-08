@@ -7,9 +7,6 @@
 import Foundation
 
 public struct HomeState: Equatable {
-    public var title: String = "Home"
-    public var subTitle: String = "You are signed in"
-    public var signOutButtonText: String = "SIGN OUT (GO WELCOME)"
     public var selectedTab: AppNavTab = .home
     public init() {}
 }

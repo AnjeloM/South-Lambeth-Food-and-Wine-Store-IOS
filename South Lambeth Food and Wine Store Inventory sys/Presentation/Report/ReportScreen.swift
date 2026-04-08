@@ -2,13 +2,24 @@ import SwiftUI
 
 public struct ReportScreen: View {
 
-    public init() {}
+    public let onDrawerTapped: () -> Void
+
+    public init(onDrawerTapped: @escaping () -> Void = {}) {
+        self.onDrawerTapped = onDrawerTapped
+    }
 
     @Environment(\.colorScheme) private var scheme
+    @State private var searchText = ""
 
     public var body: some View {
         VStack(spacing: 0) {
-            AppTopBar(title: "Reports", showBack: false, showsShadow: true, onBack: {})
+            // MARK: Header
+            AppScreenHeader(title: "Reports", onDrawerTapped: onDrawerTapped)
+
+            // MARK: Search & Filter
+            AppSearchFilterBar(text: $searchText)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
 
             ScrollView {
                 VStack(spacing: 16) {

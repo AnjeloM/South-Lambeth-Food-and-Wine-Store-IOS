@@ -52,10 +52,9 @@ public struct AppBottomNavBar: View {
 
     private let barHeight: CGFloat = 70
     private let scanButtonSize: CGFloat = 60
-    private let scanButtonLift: CGFloat = 22   // how far the button rises above the bar top
-    private let activeColor  = Color(hex: 0x5BB8D4)
-    private let inactiveColor = Color.white.opacity(0.55)
-    private let barBackground = Color(hex: 0x2B2B2B)
+    private let scanButtonLift: CGFloat = 22
+
+    @Environment(\.colorScheme) private var scheme
 
     // Left tabs | right tabs split
     private let leftTabs:  [AppNavTab] = [.home, .inventory]
@@ -64,41 +63,43 @@ public struct AppBottomNavBar: View {
     public var body: some View {
         ZStack(alignment: .top) {
 
-            // MARK: Bar
+            // MARK: Bar — frosted glass blur
             HStack(spacing: 0) {
-                // Left tabs
-                ForEach(leftTabs, id: \.self) { tab in
-                    tabButton(tab)
-                }
+                ForEach(leftTabs, id: \.self) { tab in tabButton(tab) }
 
-                // Centre spacer (scan button placeholder)
-                Spacer()
-                    .frame(width: scanButtonSize + 24)
+                Spacer().frame(width: scanButtonSize + 24)
 
-                // Right tabs
-                ForEach(rightTabs, id: \.self) { tab in
-                    tabButton(tab)
-                }
+                ForEach(rightTabs, id: \.self) { tab in tabButton(tab) }
             }
             .frame(height: barHeight)
             .padding(.horizontal, 8)
             .background(
                 RoundedRectangle(cornerRadius: barHeight / 2, style: .continuous)
-                    .fill(barBackground)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: barHeight / 2, style: .continuous)
+                            .strokeBorder(
+                                AppTheme.Colors.fieldBorderVariant(scheme).opacity(0.5),
+                                lineWidth: AppTheme.Layout.fieldBorderWidth
+                            )
+                    )
             )
-            .padding(.top, scanButtonLift)          // push bar down to leave room for the scan button
+            .padding(.top, scanButtonLift)
 
             // MARK: Elevated scan button
             Button(action: onScanTapped) {
                 ZStack {
                     Circle()
-                        .fill(.white)
+                        .fill(AppTheme.Colors.accent(scheme))
                         .frame(width: scanButtonSize, height: scanButtonSize)
-                        .shadow(color: .black.opacity(0.20), radius: 6, x: 0, y: 4)
+                        .shadow(
+                            color: AppTheme.Colors.accent(scheme).opacity(0.35),
+                            radius: 8, x: 0, y: 4
+                        )
 
                     Image(systemName: "barcode.viewfinder")
                         .font(.system(size: 26, weight: .medium))
-                        .foregroundStyle(barBackground)
+                        .foregroundStyle(AppTheme.Colors.buttonText(scheme))
                 }
             }
             .buttonStyle(.plain)
@@ -122,7 +123,11 @@ public struct AppBottomNavBar: View {
                 Text(tab.label)
                     .font(AppTheme.Typography.caption)
             }
-            .foregroundStyle(isActive ? activeColor : inactiveColor)
+            .foregroundStyle(
+                isActive
+                    ? AppTheme.Colors.accent(scheme)
+                    : AppTheme.Colors.secondaryText(scheme)
+            )
             .frame(maxWidth: .infinity)
             .frame(height: barHeight)
             .contentShape(Rectangle())

@@ -111,6 +111,32 @@ Gate (Splash)
 
 ---
 
+## Session Persistence
+
+The app remembers signed-in users across cold launches. No login screen is shown unless the user explicitly signed out.
+
+### How it works
+
+`Domain/Session/SessionChecking.swift` defines three types:
+
+| Type | Role |
+|---|---|
+| `SessionChecking` | Read-only protocol — `isSignedIn() async -> Bool` |
+| `SessionManaging` | Extends `SessionChecking` — adds `saveSession()` and `clearSession()` |
+| `LocalSessionManager` | Concrete impl — stores `"app.isSignedIn"` boolean in `UserDefaults` |
+
+`AppRootView` owns the `SessionManaging` instance and calls:
+- `sessionManager.saveSession()` — on successful login (`onNavigateHome`) and OTP verification (`onVerified`)
+- `sessionManager.clearSession()` — when the user signs out from Home (`onNavigateWelcome`)
+
+`GateViewModel` reads `sessionChecker.isSignedIn()` on launch and routes to `.home` or `.welcome` accordingly.
+
+### Firebase swap path
+
+Replace `LocalSessionManager` in `ContentView` with a `FirebaseSessionManager` that reads `Auth.auth().currentUser != nil`. No other file needs to change — `AppRootView` and `GateViewModel` are protocol-typed.
+
+---
+
 ## Theming
 
 All visual constants live in `UI/AppTheme.swift`. **Never hardcode colors, fonts, or spacing.**
@@ -171,12 +197,14 @@ Firebase integration is **not yet connected**. Current stubs:
 
 | Protocol | Stub | Status |
 |---|---|---|
-| `SessionChecking` | `DemoSessionChecker` | Hardcoded bool |
+| `SessionManaging` | `LocalSessionManager` | UserDefaults boolean — swap for `FirebaseSessionManager` |
 | `EmailOtpServicing` | `DemoEmailOtpService` | Accepts `"123456"` / `"1234"` in previews |
 | `TestEmailSending` | `DemoTestEmailSender` | Simulates 600ms latency |
 | `FirebaseCallableTestEmailSender` | (empty file) | Implementation pending |
 
-When wiring Firebase, replace `Demo*` implementations and inject them at `AppRootView`.
+`DemoSessionChecker` still exists for previews/tests only. Do not use it in production paths.
+
+When wiring Firebase, replace `LocalSessionManager` with a `FirebaseSessionManager` that reads `Auth.auth().currentUser != nil`. Only `ContentView` needs to change.
 
 ---
 
@@ -237,23 +265,126 @@ Escalating resend cooldown: `60s → 2m → 5m → 30m → 1h`
 
 All reusable UI lives in `Shared/`. When building new screens, use existing components before creating new ones.
 
-| Component | File |
-|---|---|
-| `AppPillButton` | Primary CTA button, supports loading state and disabled state |
-| `OutlinedTextField` | Labelled text input with border, keyboard type, content type |
-| `OutlinedPasswordField` | Password input with visibility toggle |
-| `AppTopBar` | Screen title bar with optional back button and shadow |
+| Component | File | Notes |
+|---|---|---|
+| `AppPillButton` | `Shared/AppPillButton.swift` | Primary CTA button, supports loading + disabled state |
+| `OutlinedTextField` | `Shared/OutlinedTextField.swift` | Labelled input with border, keyboard type, content type |
+| `OutlinedPasswordField` | `Shared/OutlinePasswordField.swift` | Password input with visibility toggle |
+| `AppTopBar` | `Shared/AppTopBar.swift` | Title bar with optional back button and shadow — auth screens only |
+| `AppScreenHeader` | `Shared/AppScreenHeader.swift` | Main tab header: profile pic + accent title + bell + drawer button |
+| `AppSearchFilterBar` | `Shared/AppSearchFilterBar.swift` | Search pill + filter button — used on all four main tabs |
+| `AppBottomNavBar` | `Shared/AppBottomNavBar.swift` | Frosted glass tab bar with elevated scan FAB |
+| `AppDrawer` | `Shared/AppDrawer.swift` | Left slide-in navigation drawer with profile, menu items, and logout |
+
+### AppScreenHeader
+
+Design ref: `/Users/mariyananjelo/Documents/Nishan Off Licence/App Design/Components/head.png`
+
+Layout: `[ProfilePic] ── [Title (accent)] ── [Bell + badge] [Drawer ≡]`
+
+- Profile image: `Image("ProfilePic")` — asset `Assets.xcassets/ProfilePic.imageset/` (source: `AppResources/Profile Pic.JPG`)
+- Title colour: `AppTheme.Colors.accent(scheme)`
+- Bell badge: shown when `hasUnreadNotification == true`
+- Drawer button (`line.3.horizontal`): calls `onDrawerTapped` closure — defaults to `{}` so previews need no changes
+- Both bell and drawer button use `surfaceContainer` circle background
+
+### AppDrawer
+
+Left-side navigation drawer. Used exclusively from `HomeScreen` via `@State private var isDrawerOpen`.
+
+**Structure:**
+- Top: profile pic, "Store Manager" name, "South Lambeth Store" subtitle, close `×` button
+- Middle: scrollable menu rows in two groups separated by a `Divider`:
+  - Group 1 (nav): Profile, Report, TimeSheet, History, Terms & Conditions
+  - Group 2 (print): Set Print Order, Print
+- Bottom: Logout row pinned below a `Divider`, styled in `AppTheme.Colors.error(scheme)`
+
+**Behaviour:**
+- Spring animation (`response: 0.32, dampingFraction: 0.88`) on open/close
+- Semi-transparent black backdrop (`opacity: 0.45`) — tap to dismiss
+- All items close the drawer first, then fire their action after 250 ms so the animation completes
+- `onLogout` wires to `onEvent(.onSignOutTapped)` in `HomeScreen`, which flows through `HomeViewModel → HomeRouteHostView → AppRootView → sessionManager.clearSession()`
+
+**Wiring pattern — do not break this chain:**
+```
+AppDrawer.onLogout
+  → HomeScreen: onEvent(.onSignOutTapped)
+  → HomeViewModel: emit(.navigateWelcome)
+  → HomeRouteHostView: onNavigateWelcome()
+  → AppRootView: sessionManager.clearSession(); route = .welcome
+```
+
+**Drawer trigger propagation:**
+`HomeScreen` owns `@State private var isDrawerOpen`. It passes `onDrawerTapped: { isDrawerOpen = true }` directly to each tab screen's init. Each tab screen forwards it to `AppScreenHeader`. Never wire drawer state through the ViewModel or UiEvent system — it is a pure UI concern.
+
+### PrintSheetView (private, inside AppDrawer.swift)
+
+Presented as a `.sheet` from `AppDrawer` when the user taps Print.
+
+- Print preview: store header (name, report type, timestamp) + striped table (Item | SKU | Stock)
+- Low-stock rows highlighted in `AppTheme.Colors.error(scheme)`
+- **Cancel** — dismisses the sheet; styled with `surfaceContainer` fill
+- **Print** — fires iOS native `UIPrintInteractionController` with inventory data formatted as plain text; styled with `accent` fill
+- Sample data is hardcoded — replace with real `InventoryRepository` data once the data layer is wired (`// MARK: Firebase – pending` comment in file)
+
+### SetPrintOrderSheetView (private, inside AppDrawer.swift)
+
+Presented as a `.sheet` from `AppDrawer` when the user taps Set Print Order.
+
+- Currently a placeholder screen ("Coming soon" pill) marked `// MARK: Firebase – pending`
+- When inventory data layer is wired, implement drag-to-reorder using SwiftUI `List` with `.onMove` to let users control item order in printed reports
+
+### AppSearchFilterBar
+
+Design ref: `/Users/mariyananjelo/Documents/Nishan Off Licence/App Design/Components/Search_and_filter.png`
+
+Theming rule — **always use surface elevation, never inverted colors**:
+- Fill: `AppTheme.Colors.surfaceContainer(scheme)` — one level above background in both themes
+- Text: `AppTheme.Colors.primaryText(scheme)` / placeholder: `AppTheme.Colors.secondaryText(scheme)`
+- Each screen owns a local `@State private var searchText = ""` and passes it as a `Binding`
+
+### AppBottomNavBar
+
+- Background: `.ultraThinMaterial` (frosted glass blur) + `fieldBorderVariant` stroke
+- Active tab: `AppTheme.Colors.accent(scheme)`
+- Inactive tab: `AppTheme.Colors.secondaryText(scheme)`
+- Scan FAB: `accent` fill, `buttonText` icon
+
+### Theming Rule for All New Components
+
+**Never use inverted or hardcoded hex fills for surfaces.** Use `AppTheme.Colors.surfaceContainer(scheme)` for fields, bars, and cards. Use `.ultraThinMaterial` for floating/overlaid surfaces (bottom bars, sheets). Only accent-coloured CTAs may use `AppTheme.Colors.accent(scheme)` as a fill.
+
+### Design Sample Files
+
+Reference images for new components:
+- Components: `/Users/mariyananjelo/Documents/Nishan Off Licence/App Design/Components/`
+- Assets (logos, profile pic): `/Users/mariyananjelo/Documents/Nishan Off Licence/App Design/AppResources/`
+
+Always read the relevant design image before building a new component.
 
 When adding new shared components:
 - Accept state via plain value parameters (not bindings where avoidable)
 - Emit actions via closures
 - Use `AppTheme` exclusively for styling
-- Always include a `#Preview`
+- Always include a `#Preview` for light and dark mode
 
-### Home Screen Requirements (upcoming)
+### Scanner Screen — Safe Area
 
-The Home screen must reflect real shop operations:
+`ScannerScreen` uses `.ignoresSafeArea()` on its root `ZStack` so the camera fills the full screen. The top bar (close, title, torch) reads the device's actual safe area inset at runtime:
 
+```swift
+.padding(.top: (UIApplication.shared.connectedScenes
+    .compactMap { $0 as? UIWindowScene }
+    .first?.windows.first?.safeAreaInsets.top ?? 0) + 12)
+```
+
+Never use a hardcoded top padding on the scanner — insets differ across devices (Dynamic Island, notch, flat top).
+
+### Home Screen — Current State & Upcoming
+
+`HomeState` contains only `selectedTab: AppNavTab`. The sign-out button has been removed from the dashboard; logout is now exclusively in `AppDrawer`.
+
+Upcoming dashboard content:
 - Inventory statistics (total items, total value, low stock count)
 - Stock overview by category
 - Filters (category, low stock, expiry, etc.)

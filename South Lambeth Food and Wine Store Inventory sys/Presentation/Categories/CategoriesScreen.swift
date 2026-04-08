@@ -2,15 +2,26 @@ import SwiftUI
 
 public struct CategoriesScreen: View {
 
-    public init() {}
+    public let onDrawerTapped: () -> Void
+
+    public init(onDrawerTapped: @escaping () -> Void = {}) {
+        self.onDrawerTapped = onDrawerTapped
+    }
 
     @Environment(\.colorScheme) private var scheme
+    @State private var searchText = ""
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
     public var body: some View {
         VStack(spacing: 0) {
-            AppTopBar(title: "Cat", showBack: false, showsShadow: true, onBack: {})
+            // MARK: Header
+            AppScreenHeader(title: "Categories", onDrawerTapped: onDrawerTapped)
+
+            // MARK: Search & Filter
+            AppSearchFilterBar(text: $searchText)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
 
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 14) {

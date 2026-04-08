@@ -95,7 +95,10 @@ public struct ScannerScreen: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 12)
+        // Push below the status bar — safe area top + breathing room
+        .padding(.top, (UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?.safeAreaInsets.top ?? 0) + 12)
     }
 
     // MARK: - Scan Window

@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
+    private let sessionManager = LocalSessionManager()
+
     var body: some View {
-        AppRootView(sessionChecker: DemoSessionChecker(signedIn: false))
+        AppRootView(sessionManager: sessionManager)
     }
 }
 

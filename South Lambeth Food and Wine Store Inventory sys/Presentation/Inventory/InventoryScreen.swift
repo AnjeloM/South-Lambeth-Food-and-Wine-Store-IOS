@@ -2,14 +2,24 @@ import SwiftUI
 
 public struct InventoryScreen: View {
 
-    public init() {}
+    public let onDrawerTapped: () -> Void
+
+    public init(onDrawerTapped: @escaping () -> Void = {}) {
+        self.onDrawerTapped = onDrawerTapped
+    }
 
     @Environment(\.colorScheme) private var scheme
+    @State private var searchText = ""
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Top Bar
-            AppTopBar(title: "Inventory", showBack: false, showsShadow: true, onBack: {})
+            // MARK: Header
+            AppScreenHeader(title: "Inventory", onDrawerTapped: onDrawerTapped)
+
+            // MARK: Search & Filter
+            AppSearchFilterBar(text: $searchText)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
 
             ScrollView {
                 VStack(spacing: 20) {

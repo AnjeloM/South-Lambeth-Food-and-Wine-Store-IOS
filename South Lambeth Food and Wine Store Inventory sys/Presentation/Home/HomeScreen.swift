@@ -9,6 +9,8 @@ public struct HomeScreen: View {
         self.onEvent = onEvent
     }
 
+    @State private var isDrawerOpen = false
+
     // Binding bridge — keeps AppBottomNavBar in sync without a separate @State
     private var tabBinding: Binding<AppNavTab> {
         Binding(
@@ -18,20 +20,26 @@ public struct HomeScreen: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .leading) {
 
-            // MARK: Tab Content
-            tabContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // MARK: Main content
+            VStack(spacing: 0) {
+                tabContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // MARK: Bottom Nav Bar
-            AppBottomNavBar(
-                selectedTab: tabBinding,
-                onScanTapped: { onEvent(.scanTapped) }
-            )
-            .padding(.bottom, 12)
+                AppBottomNavBar(
+                    selectedTab: tabBinding,
+                    onScanTapped: { onEvent(.scanTapped) }
+                )
+                .padding(.bottom, 12)
+            }
+            .navigationBarBackButtonHidden(true)
+
+            // MARK: Drawer overlay
+            AppDrawer(isOpen: $isDrawerOpen) {
+                onEvent(.onSignOutTapped)
+            }
         }
-        .navigationBarBackButtonHidden(true)
     }
 
     // MARK: - Tab Content Switch
@@ -40,16 +48,13 @@ public struct HomeScreen: View {
     private var tabContent: some View {
         switch state.selectedTab {
         case .home:
-            HomeDashboardView(
-                signOutText: state.signOutButtonText,
-                onSignOut: { onEvent(.onSignOutTapped) }
-            )
+            HomeDashboardView(onDrawerTapped: { isDrawerOpen = true })
         case .inventory:
-            InventoryScreen()
+            InventoryScreen(onDrawerTapped: { isDrawerOpen = true })
         case .report:
-            ReportScreen()
+            ReportScreen(onDrawerTapped: { isDrawerOpen = true })
         case .categories:
-            CategoriesScreen()
+            CategoriesScreen(onDrawerTapped: { isDrawerOpen = true })
         }
     }
 }
@@ -57,38 +62,47 @@ public struct HomeScreen: View {
 // MARK: - Home Dashboard (the .home tab content)
 
 private struct HomeDashboardView: View {
-    let signOutText: String
-    let onSignOut: () -> Void
+    let onDrawerTapped: () -> Void
 
     @Environment(\.colorScheme) private var scheme
+    @State private var searchText = ""
 
     var body: some View {
-        VStack(spacing: 14) {
-            Spacer()
+        VStack(spacing: 0) {
+            // MARK: Header
+            AppScreenHeader(title: "Home", onDrawerTapped: onDrawerTapped)
 
-            Image(systemName: "house.fill")
-                .font(.system(size: 52))
-                .foregroundStyle(AppTheme.Colors.accent(scheme))
+            // MARK: Search & Filter
+            AppSearchFilterBar(text: $searchText)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
 
-            Text("South Lambeth")
-                .font(.system(size: 26, weight: .heavy))
-                .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+            // MARK: Dashboard content
+            ScrollView {
+                VStack(spacing: 14) {
+                    Spacer().frame(height: 20)
 
-            Text("Food & Wine Store")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                    Image(systemName: "house.fill")
+                        .font(.system(size: 52))
+                        .foregroundStyle(AppTheme.Colors.accent(scheme))
 
-            Text("Inventory System")
-                .font(AppTheme.Typography.caption)
-                .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                    Text("South Lambeth")
+                        .font(.system(size: 26, weight: .heavy))
+                        .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+
+                    Text("Food & Wine Store")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+
+                    Text("Inventory System")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, AppTheme.Layout.screenHPadding)
                 .padding(.bottom, 20)
-
-            Button(signOutText, action: onSignOut)
-                .buttonStyle(.bordered)
-
-            Spacer()
+            }
         }
-        .padding(AppTheme.Layout.screenHPadding)
     }
 }
 
