@@ -75,7 +75,7 @@ public struct AppRootView: View {
                 authenticator: FirebaseLoginAuthenticator(),
                 onNavigateBack: { route = .welcome },
                 onNavigateForgotPassword: { route = .resetmail },
-                onNavigateSignUp: { route = .signup },
+                onNavigateSignUp: { route = .roleSelection },
                 onNavigateHome: {
                     sessionManager.saveSession()
                     route = .home
@@ -101,10 +101,23 @@ public struct AppRootView: View {
                 onLoadingChanged: { isBlocking = $0 }
             )
 
+        case .roleSelection:
+            RoleSelectionRouteHostView(
+                onNavigateBack: { route = .login },
+                onNavigateToUserSignUp: { route = .signup },
+                onNavigateToOwnerSignUp: { route = .ownerSignUp }
+            )
+
+        case .ownerSignUp:
+            OwnerSignUpRouteHostView(
+                onNavigateBack: { route = .roleSelection },
+                onShowToast: { message in showToast(message) }
+            )
+
         case .signup:
             SignUpRouteHostView(
                 otpSender: FirebaseSignUpOtpSender(),
-                onNavigateBack: { route = .login },
+                onNavigateBack: { route = .roleSelection },
                 onOpenURL: { _ in /* later: open safari */ },
                 onNavigateOtp: { email, name, password in
                     route = .otp(email: email, name: name, password: password)

@@ -97,9 +97,19 @@ Navigation is **fully centralised** in `AppRootView`.
 ```
 Gate (Splash)
   ├── authenticated  → Home
-  └── unauthenticated → Welcome → Login / SignUp → (OTP) → Home
-                                 → ForgotPassword → SendResetMail
-                                                    (email link) → ResetPassword → Login
+  └── unauthenticated → Welcome → Login ──────────────────────────────────────┐
+                                    │                                          │
+                                    ├── Sign Up → RoleSelection               │
+                                    │               ├── Sign Up as User        │
+                                    │               │     → SignUp (user form) │
+                                    │               │       → OTP → Home       │
+                                    │               └── Sign Up as Owner       │
+                                    │                     → OwnerSignUp        │
+                                    │                       (MARK: Firebase – pending)
+                                    ├── ForgotPassword → SendResetMail        │
+                                    │                     (email link)         │
+                                    │                       → ResetPassword ───┘
+                                    └── ← back ← RoleSelection / SignUp
 ```
 
 ### Rules
@@ -503,6 +513,77 @@ Upcoming dashboard (`.home` tab) content:
 - Filters (category, low stock, expiry, etc.)
 - Recent stock updates / audit log
 - Product quick actions (scan barcode, add item, export PDF)
+
+### Role Selection Screen
+
+Intermediate screen inserted between Login → SignUp. Files: `Presentation/RoleSelection/` (full 5-file contract).
+
+- Two role cards: **Sign Up as User** (`person.fill`) and **Sign Up as Owner** (`building.2.fill`)
+- Back navigates to `.login`; user card → `.signup`; owner card → `.ownerSignUp`
+- No state beyond static labels — `RoleSelectionViewModel` is a pure effect emitter
+
+### Owner Sign Up Screen
+
+Frontend-only onboarding screen for store owners. Files: `Presentation/OwnerSignUp/` (full 5-file contract).
+
+**Features:**
+- Account details section: Name, Email, Password, Retype Password (same password rules as user signup)
+- **Shop list section** — owner must add at least one shop before submitting
+- Each shop entry: Name, Address, Phone (UK-style mask `XXXXX XXXXXX`), Location (tappable stub — `// MARK: Firebase – pending` for Google Maps picker storing `latitude`/`longitude`)
+- **Add/Edit shop** via `ShopFormSheet` (private sheet in `OwnerSignUpScreen.swift`) — name and address are required; phone and location are optional
+- **Delete shop** requires typing `CONFIRM` exactly in `DeleteConfirmSheet` before the Remove button activates; button animates from disabled (grey) → enabled (red)
+
+**Key models (defined in `OwnerSignUpUiState.swift`):**
+
+| Type | Role |
+|---|---|
+| `OwnerShopEntry` | `id`, `name`, `address`, `phone` (masked), `locationLabel`, `latitude?`, `longitude?` |
+| `OwnerSignUpUiState` | Account fields, `shops: [OwnerShopEntry]`, sheet presentation flags (`isShopSheetPresented`, `isDeleteConfirmPresented`), `draftShop`, `deleteConfirmText`, `isDeleteConfirmValid` |
+
+**Pending (`// MARK: Firebase – pending`):**
+- `OwnerSignUpUiEffect` has only `navigateBack` and `showToast` — no OTP/registration flow yet
+- `submit()` validates all fields, then shows a toast; replace with OTP + owner-registration Cloud Function when backend is wired
+- `draftShopLocationTapped` shows "Location picker coming soon" toast — replace with Google Maps SDK sheet that writes `locationLabel`, `latitude`, `longitude`
+- Back navigation: `.ownerSignUp` → `.roleSelection`
+
+### User Sign Up — Store Assignment
+
+`SignUpScreen` now includes a **Store Assignment** card section (below password rules, above the Sign Up button). The user must select an owner and a default shop before the form can be submitted.
+
+**Models (defined in `SignUpUiState.swift`):**
+
+| Type | Role |
+|---|---|
+| `SignUpOwner` | `id`, `name`, `storeName`, `shops: [SignUpShop]` |
+| `SignUpShop` | `id`, `name`, `address` |
+
+**State additions to `SignUpUiState`:**
+- `availableOwners: [SignUpOwner]` — populated from `mockOwners` (3 owners, 5 shops); replace with Firestore query
+- `selectedOwner: SignUpOwner?`, `selectedShop: SignUpShop?`
+- `isOwnerPickerPresented: Bool`, `isShopPickerPresented: Bool`
+
+**Validation rules (enforced in `SignUpViewModel.signUp()`):**
+1. Owner must be selected
+2. Selected owner must have at least one shop
+3. Default shop must be selected
+4. All existing password/field rules still apply
+
+**`OwnerPickerSheet`** (private, inside `SignUpScreen.swift`):
+- Searchable — filters by owner name or store name (case-insensitive)
+- Only shows owners with `shops.count > 0` (`eligibleOwners` computed property)
+- Two empty states: no search results vs no eligible owners at all
+- Selected owner shows accent circle + checkmark; `×` clear button resets both owner and shop selection
+
+**`ShopPickerSheet`** (private, inside `SignUpScreen.swift`):
+- Displays shops belonging to the selected owner only
+- Disabled and shows "Select an owner first" until an owner is selected
+
+**Post-OTP flow (`// MARK: Firebase – pending`):**
+- After OTP verification, a join-request must be submitted to the selected owner (`selectedOwner.id`, `selectedShop.id`) for approval before the account becomes active
+- The current `registrar.register()` call in `AppRootView` is a placeholder — replace with a join-request Cloud Function
+
+**Social sign-in buttons (Google / Apple):**  
+Commented out in `SignUpScreen.swift` — not removed, ready to re-enable once OAuth is wired.
 
 ### Inventory Screen
 

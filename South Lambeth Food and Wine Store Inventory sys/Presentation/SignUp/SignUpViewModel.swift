@@ -67,6 +67,35 @@ public final class SignUpViewModel: ObservableObject {
         case .termsTapped:
             emit(.openURL(URL(string: "https://example.com/terms")!))
 
+        // MARK: Store Assignment
+
+        case .ownerPickerTapped:
+            state.isOwnerPickerPresented = true
+
+        case .shopPickerTapped:
+            guard state.selectedOwner != nil else { return }
+            state.isShopPickerPresented = true
+
+        case .ownerSelected(let owner):
+            state.selectedOwner = owner
+            // Reset shop selection if the owner changed
+            state.selectedShop = nil
+            state.isOwnerPickerPresented = false
+
+        case .shopSelected(let shop):
+            state.selectedShop = shop
+            state.isShopPickerPresented = false
+
+        case .clearOwnerSelection:
+            state.selectedOwner = nil
+            state.selectedShop = nil
+
+        case .ownerPickerDismissed:
+            state.isOwnerPickerPresented = false
+
+        case .shopPickerDismissed:
+            state.isShopPickerPresented = false
+
         case .signUpTapped:
             Task { await signUp() }
         }
@@ -82,7 +111,6 @@ public final class SignUpViewModel: ObservableObject {
         let password = state.password
         let retype   = state.retypePassword
 
-        // — Basic field validation —
         guard !name.isEmpty else {
             emit(.showToast("Please enter your name."))
             return
@@ -91,7 +119,6 @@ public final class SignUpViewModel: ObservableObject {
             emit(.showToast("Please enter your email address."))
             return
         }
-
         guard !password.isEmpty else {
             emit(.showToast("Please enter a password."))
             return
@@ -104,8 +131,24 @@ public final class SignUpViewModel: ObservableObject {
             emit(.showToast("Passwords do not match."))
             return
         }
+        guard let owner = state.selectedOwner else {
+            emit(.showToast("Please select a shop owner before signing up."))
+            return
+        }
+        guard !owner.shops.isEmpty else {
+            emit(.showToast("The selected owner has no registered shops. Please choose a different owner."))
+            return
+        }
+        guard state.selectedShop != nil else {
+            emit(.showToast("Please select your default shop before signing up."))
+            return
+        }
 
-        // — Send OTP —
+        // MARK: Firebase – pending
+        // After OTP verification, submit a join-request to:
+        //   selectedOwner.id, selectedShop.id
+        // The owner will approve or reject the request before the account is active.
+
         state.isLoading = true
         do {
             try await otpSender.sendOtp(to: email)
@@ -119,7 +162,6 @@ public final class SignUpViewModel: ObservableObject {
 
     // MARK: - Helpers
 
-    /// Mirrors the password strength rules shown in the UI and enforced server-side.
     private func isStrongPassword(_ pw: String) -> Bool {
         guard pw.count >= 8 else { return false }
         var lower = 0, upper = 0, digit = 0, special = 0
