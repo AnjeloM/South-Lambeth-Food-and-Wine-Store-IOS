@@ -21,6 +21,8 @@ public enum SignUpUiEvent: Equatable {
     // Footer links
     case privacyPolicyTapped
     case termsTapped
-    
+
+    // Primary action
+    case signUpTapped
 }
 

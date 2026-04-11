@@ -136,7 +136,7 @@ public struct LoginScreen: View {
         VStack(spacing: 12) {
             AppPillButton(
                 title: state.loginButtonText,
-                isLoading: false,
+                isLoading: state.isLoading,
                 isEnabled: state.isLoginEnabled,
                 accessibilityLabel: "Login",
                 action: { onEvent(.loginTapped) }

@@ -11,6 +11,7 @@ public struct LoginUiState: Equatable {
 
     // UI enable/disable (computed by ViewModel, not by the view)
     public var isLoginEnabled: Bool = false
+    public var isLoading: Bool = false
 
     // Labels / static text
     public var emailLabel: String = "Email"

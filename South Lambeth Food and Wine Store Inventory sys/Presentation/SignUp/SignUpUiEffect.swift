@@ -2,7 +2,7 @@ import Foundation
 
 public enum SignUpUiEffect: Equatable {
     case navigateBack
-    case navigateToOtp(String) 
+    case navigateToOtp(email: String, name: String, password: String)
     
     // ON_OFF action (host handles these)
     case continueWithGoogle

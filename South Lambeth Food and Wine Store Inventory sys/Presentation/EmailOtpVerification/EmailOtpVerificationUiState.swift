@@ -2,7 +2,7 @@ import Foundation
 
 public struct EmailOtpVerificationUiState: Equatable {
     public var title: String = "OTP Verification"
-    public var email: String
+    public var email: String = "anjelom.1990@gmail.com"
     
     // 4 digits
     public var otpDigits: [String] = ["","","",""]

@@ -63,27 +63,24 @@ public final class EmailOtpVerificationViewModel: ObservableObject {
     private func applyOtpInput(index: Int, raw: String) {
         guard (0..<4).contains(index) else { return }
 
-        // digits only
+        var s = state
         let digitsOnly = raw.filter { $0.isNumber }
 
         if digitsOnly.isEmpty {
-            state.otpDigits[index] = ""
-            return
-        }
-
-        // paste support: spread multiple digits starting at index
-        if digitsOnly.count > 1 {
+            s.otpDigits[index] = ""
+        } else if digitsOnly.count > 1 {
+            // paste support: spread multiple digits starting at index
             var i = index
             for ch in digitsOnly {
                 guard i < 4 else { break }
-                state.otpDigits[i] = String(ch)
+                s.otpDigits[i] = String(ch)
                 i += 1
             }
-            return
+        } else {
+            s.otpDigits[index] = String(digitsOnly.prefix(1))
         }
 
-        // single digit
-        state.otpDigits[index] = String(digitsOnly.prefix(1))
+        state = s   // single publish
     }
 
     // MARK: - Verify
@@ -160,11 +157,13 @@ public final class EmailOtpVerificationViewModel: ObservableObject {
     // MARK: - Derived
 
     private func recalcDerived() {
-        let complete = state.otpDigits.allSatisfy { $0.count == 1 }
-        state.isOtpComplete = complete
-        state.verifyEnabled = complete && !state.isVerifying
-        state.resendLabel = "Resend in: \(format(seconds: state.resendRemainingSeconds))"
-        if state.resendRemainingSeconds == 0 { state.canResend = true }
+        var s = state
+        let complete = s.otpDigits.allSatisfy { $0.count == 1 }
+        s.isOtpComplete = complete
+        s.verifyEnabled = complete && !s.isVerifying
+        s.resendLabel = "Resend in: \(format(seconds: s.resendRemainingSeconds))"
+        if s.resendRemainingSeconds == 0 { s.canResend = true }
+        state = s   // single publish
     }
 
     private func format(seconds: Int) -> String {

@@ -359,7 +359,7 @@ export const requestPasswordResetLink = onCall(
       await rlRef.set({ sentAt: now }, { merge: true });
 
       // 4) Send email with deep link
-      const redirectLink = `https://southlambeth.web.app/reset?token=${encodeURIComponent(token)}`;
+      const redirectLink = `inventorysys://reset?token=${encodeURIComponent(token)}`;
       const minutes = Math.ceil(RESET_TOKEN_TTL_SECONDS / 60);
 
       await sendEmail(
@@ -467,3 +467,55 @@ export const resetPasswordWithToken = onCall(async (request) => {
     throw new HttpsError("internal", err?.message ?? "Unknown error");
   }
 });
+
+/* ====== Register new user ====== */
+/* ================================ */
+export const registerUser = onCall(async (request) => {
+  try {
+    const data = request.data as { email?: string; name?: string; password?: string };
+
+    const email    = (data.email    ?? "").trim().toLowerCase();
+    const name     = (data.name     ?? "").trim();
+    const password = (data.password ?? "").trim();
+
+    if (!email)    throw new HttpsError("invalid-argument", "email is required");
+    if (!name)     throw new HttpsError("invalid-argument", "name is required");
+    if (!password) throw new HttpsError("invalid-argument", "password is required");
+
+    if (!isStrongPassword(password))
+      throw new HttpsError("invalid-argument", "Password does not meet requirements.");
+
+    // Prevent duplicate accounts — getUserByEmail throws auth/user-not-found if absent
+    try {
+      await admin.auth().getUserByEmail(email);
+      // If we reach here, the user already exists
+      throw new HttpsError("already-exists", "An account with this email already exists.");
+    } catch (err: any) {
+      if (err instanceof HttpsError) throw err;
+      // auth/user-not-found is expected — continue to create the user
+    }
+
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName: name,
+    });
+
+    await db.collection("users").doc(userRecord.uid).set({
+      uid: userRecord.uid,
+      email,
+      displayName: name,
+      role: "staff",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    logger.info("User registered", { uid: userRecord.uid, email });
+    return { ok: true, uid: userRecord.uid };
+
+  } catch (err: any) {
+    logger.error("registerUser failed", { message: err?.message, code: err?.code });
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err?.message ?? "Unknown error");
+  }
+});
+

@@ -14,7 +14,10 @@ public struct EmailOtpVerificationScreen: View {
 
     @Environment(\.colorScheme) private var scheme
 
-    private enum Field: Hashable { case d0, d1, d2, d3 }
+    private enum Field: Hashable {
+        case d0, d1, d2, d3
+    }
+
     @FocusState private var focused: Field?
 
     public var body: some View {
@@ -37,6 +40,7 @@ public struct EmailOtpVerificationScreen: View {
 
                     otpRow
                 }
+
                 Spacer()
 
                 VStack(spacing: 14) {
@@ -60,31 +64,22 @@ public struct EmailOtpVerificationScreen: View {
                 .padding(.bottom, 18)
             }
         }
-        .contentShape(Rectangle())
-        .onTapGesture { dismissKeyboard() }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    focused = nil
+                }
+            }
+        }
+        .background(Color.clear.contentShape(Rectangle()).onTapGesture {
+            focused = nil
+        })
         .onAppear {
             onEvent(.onAppear)
-            if state.otpDigits[0].isEmpty { focused = .d0 }
-        }
-        .onChange(of: state.otpDigits) { _, digits in
-            // Focus progresses based on state (UI-only concern)
-            if digits[0].isEmpty {
+            if focused == nil && state.otpDigits[0].isEmpty {
                 focused = .d0
-                return
             }
-            if digits[1].isEmpty {
-                focused = .d1
-                return
-            }
-            if digits[2].isEmpty {
-                focused = .d2
-                return
-            }
-            if digits[3].isEmpty {
-                focused = .d3
-                return
-            }
-            focused = nil
         }
     }
 
@@ -103,23 +98,16 @@ public struct EmailOtpVerificationScreen: View {
             get: { state.otpDigits[index] },
             set: { newValue in
                 onEvent(.otpChanged(index: index, value: newValue))
-
-                // quick focus hint based on user's action
-                let digits = newValue.filter { $0.isNumber }
-                if digits.isEmpty {
-                    focused = previousField(for: field)
-                } else {
-                    focused = nextField(for: field)
-                }
             }
         )
 
         return TextField("", text: binding)
             .keyboardType(.numberPad)
-            .textContentType(.oneTimeCode)
+            .textContentType(index == 0 ? .oneTimeCode : .none)
             .multilineTextAlignment(.center)
             .font(.system(size: 22, weight: .bold))
-            .foregroundStyle(AppTheme.Colors.accent(scheme)) 
+            .foregroundStyle(AppTheme.Colors.buttonText(scheme))
+            .tint(AppTheme.Colors.buttonText(scheme))
             .focused($focused, equals: field)
             .frame(width: 74, height: 74)
             .background(
@@ -133,6 +121,21 @@ public struct EmailOtpVerificationScreen: View {
                         lineWidth: 1
                     )
             )
+            .onChange(of: state.otpDigits[index]) { oldValue, newValue in
+                let digits = newValue.filter { $0.isNumber }
+                // Only drive focus changes when the user is editing this field
+                guard focused == field else { return }
+                if digits.isEmpty {
+                    // User cleared this box -> move back
+                    focused = previousField(for: field)
+                } else if digits.count > 1 {
+                    // Pasted multiple digits -> jump accordingly
+                    focused = fieldAfterPastedDigits(from: field, count: digits.count)
+                } else {
+                    // Single digit entered -> advance
+                    focused = nextField(for: field)
+                }
+            }
             .accessibilityLabel("OTP digit \(index + 1)")
     }
 
@@ -154,7 +157,25 @@ public struct EmailOtpVerificationScreen: View {
         }
     }
 
-    // Grey pill buttons like the screenshots (feature-local)
+    private func fieldAfterPastedDigits(from field: Field, count: Int) -> Field? {
+        let startIndex: Int
+        switch field {
+        case .d0: startIndex = 0
+        case .d1: startIndex = 1
+        case .d2: startIndex = 2
+        case .d3: startIndex = 3
+        }
+
+        let nextIndex = min(startIndex + count, 4)
+        switch nextIndex {
+        case 0: return .d0
+        case 1: return .d1
+        case 2: return .d2
+        case 3: return .d3
+        default: return nil
+        }
+    }
+
     private func otpActionButton(
         title: String,
         enabled: Bool,
@@ -164,8 +185,7 @@ public struct EmailOtpVerificationScreen: View {
             Text(title)
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(
-                    AppTheme.Colors.primaryText(scheme)
-                        .opacity(enabled ? 0.55 : 0.25)
+                    AppTheme.Colors.primaryText(scheme).opacity(enabled ? 0.55 : 0.25)
                 )
                 .frame(maxWidth: .infinity)
                 .frame(height: 58)
@@ -177,5 +197,5 @@ public struct EmailOtpVerificationScreen: View {
         .buttonStyle(.plain)
         .disabled(!enabled)
     }
-
 }
+

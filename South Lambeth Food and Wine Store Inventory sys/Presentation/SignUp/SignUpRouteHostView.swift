@@ -6,20 +6,22 @@ public struct SignUpRouteHostView: View {
 
     private let onNavigateBack: () -> Void
     private let onOpenURL: (URL) -> Void
-    private let onNavigateOtp: (String) -> Void
+    private let onNavigateOtp: (String, String, String) -> Void
     private let onContinueWithGoogle: () -> Void
     private let onContinueWithApple: () -> Void
 
+    @State private var toastMessage: String?
+    @State private var isToastPresented: Bool = false
+
     public init(
-        viewModel: SignUpViewModel? = nil,
+        otpSender: SignUpOtpSending = DemoSignUpOtpSender(),
         onNavigateBack: @escaping () -> Void,
         onOpenURL: @escaping (URL) -> Void,
-        onNavigateOtp: @escaping (String) -> Void,
+        onNavigateOtp: @escaping (String, String, String) -> Void,
         onContinueWithGoogle: @escaping () -> Void,
         onContinueWithApple: @escaping () -> Void
     ) {
-        let vm = viewModel ?? SignUpViewModel()
-        _viewModel = StateObject(wrappedValue: vm)
+        _viewModel = StateObject(wrappedValue: SignUpViewModel(otpSender: otpSender))
         self.onNavigateBack = onNavigateBack
         self.onOpenURL = onOpenURL
         self.onNavigateOtp = onNavigateOtp
@@ -29,6 +31,11 @@ public struct SignUpRouteHostView: View {
 
     public var body: some View {
         SignUpScreen(state: viewModel.state, onEvent: viewModel.onEvent)
+            .alert("Notice", isPresented: $isToastPresented) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(toastMessage ?? "")
+            }
             .task {
                 for await effect in viewModel.effects {
                     switch effect {
@@ -36,16 +43,43 @@ public struct SignUpRouteHostView: View {
                         onNavigateBack()
                     case .openURL(let url):
                         onOpenURL(url)
-                    case .navigateToOtp(let email):
-                        onNavigateOtp(email)
+                    case .navigateToOtp(let email, let name, let password):
+                        onNavigateOtp(email, name, password)
                     case .continueWithGoogle:
                         onContinueWithGoogle()
                     case .continueWithApple:
                         onContinueWithApple()
-                    case .showToast:
-                        break
+                    case .showToast(let message):
+                        toastMessage = message
+                        isToastPresented = true
                     }
                 }
             }
     }
+}
+
+// MARK: - Previews
+
+#Preview("SignUpRouteHostView - Light") {
+    SignUpRouteHostView(
+        otpSender: DemoSignUpOtpSender(),
+        onNavigateBack: {},
+        onOpenURL: { _ in },
+        onNavigateOtp: { _, _, _ in },
+        onContinueWithGoogle: {},
+        onContinueWithApple: {}
+    )
+    .preferredColorScheme(.light)
+}
+
+#Preview("SignUpRouteHostView - Dark") {
+    SignUpRouteHostView(
+        otpSender: DemoSignUpOtpSender(),
+        onNavigateBack: {},
+        onOpenURL: { _ in },
+        onNavigateOtp: { _, _, _ in },
+        onContinueWithGoogle: {},
+        onContinueWithApple: {}
+    )
+    .preferredColorScheme(.dark)
 }

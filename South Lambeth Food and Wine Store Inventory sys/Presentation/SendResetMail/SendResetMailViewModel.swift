@@ -6,24 +6,23 @@ public final class SendResetMailViewModel: ObservableObject {
     @Published public private(set) var state: SendResetMailUiState
 
     public let effect: AsyncStream<SendResetMailUiEffect>
-    private let effectContinuation:
-        AsyncStream<SendResetMailUiEffect>.Continuation
+    private let effectContinuation: AsyncStream<SendResetMailUiEffect>.Continuation
 
+    private let sender: PasswordResetSending
     private var cooldownTask: Task<Void, Never>?
 
-    // Cooldown steps: 60s, 2m, 5m, 30, 1h
+    // Cooldown steps: 60s, 2m, 5m, 30m, 1h
     private let cooldownPresets: [Int] = [60, 120, 300, 1800, 3600]
 
     public init(
-        initialState: SendResetMailUiState? = nil
+        initialState: SendResetMailUiState? = nil,
+        sender: PasswordResetSending = DemoPasswordResetSender()
     ) {
         self.state = initialState ?? SendResetMailUiState()
+        self.sender = sender
 
         var cont: AsyncStream<SendResetMailUiEffect>.Continuation!
-        self.effect = AsyncStream(bufferingPolicy: .bufferingNewest(10)) {
-            continuation in
-            cont = continuation
-        }
+        self.effect = AsyncStream(bufferingPolicy: .bufferingNewest(10)) { cont = $0 }
         self.effectContinuation = cont
 
         recalcDerivedState()
@@ -33,6 +32,8 @@ public final class SendResetMailViewModel: ObservableObject {
         cooldownTask?.cancel()
         effectContinuation.finish()
     }
+
+    // MARK: - Events
 
     public func send(_ event: SendResetMailUiEvent) {
         switch event {
@@ -47,61 +48,48 @@ public final class SendResetMailViewModel: ObservableObject {
             recalcDerivedState()
 
         case .resendTapped:
-            // Front-end only: effect for now
             guard state.isResendEnabled else { return }
-            emit(
-                .showToast(
-                    message: "Reset email requested. (Wire Firebase later)"
-                )
-            )
-
-            // Use current level for this cooldown
-            let seconds = cooldownPresets[
-                min(state.cooldownLevelIndex, cooldownPresets.count - 1)
-            ]
-            startOrResetCooldown(seconds: seconds)
-
-            // Prepare next level (caps at last)
-            state.cooldownLevelIndex = min(
-                state.cooldownLevelIndex + 1,
-                cooldownPresets.count - 1
-            )
-
-            recalcDerivedState()
+            Task { await sendResetLink() }
 
         case ._tick:
             tickCooldown()
         }
     }
 
-    private func emit(_ effect: SendResetMailUiEffect) {
-        effectContinuation.yield(effect)
+    // MARK: - Send Reset Link
+
+    private func sendResetLink() async {
+        let email = state.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard isValidEmail(email) else { return }
+
+        state.isSubmitting = true
+        recalcDerivedState()
+
+        do {
+            try await sender.sendResetLink(to: email)
+        } catch {
+            // Swallow error intentionally — backend always returns neutral response.
+            // A network failure is the only real error; surface it quietly.
+            emit(.showToast(message: "Network error. Please try again."))
+        }
+
+        state.isSubmitting = false
+
+        // Always start cooldown and show neutral confirmation regardless of backend result
+        let seconds = cooldownPresets[min(state.cooldownLevelIndex, cooldownPresets.count - 1)]
+        startCooldown(seconds: seconds)
+        state.cooldownLevelIndex = min(state.cooldownLevelIndex + 1, cooldownPresets.count - 1)
+        recalcDerivedState()
+
+        emit(.showToast(message: "If an account exists for this email, a reset link has been sent."))
     }
 
-    private func recalcDerivedState() {
-        let isEmailValid = isValidEmail(state.email)
-        let isCoolingDown = (state.cooldownSecondsRemaining ?? 0) > 0
+    // MARK: - Cooldown
 
-        state.isResendEnabled =
-            isEmailValid
-            && !state.isSubmitting
-            && !isCoolingDown
-    }
-
-    private func isValidEmail(_ raw: String) -> Bool {
-        let email = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard email.count > 5 else { return false }
-        // Lightweight check for UI enabling only (replace with stricter logic if you want)
-        return email.contains("@") && email.contains(".")
-    }
-
-    // MARK: Cooldown
-    private func startOrResetCooldown(seconds: Int) {
+    private func startCooldown(seconds: Int) {
         cooldownTask?.cancel()
-
         state.cooldownSecondsRemaining = seconds
-        state.cooldownText = formatCoolDown(seconds)
-
+        state.cooldownText = formatCooldown(seconds)
         recalcDerivedState()
 
         cooldownTask = Task { [weak self] in
@@ -116,31 +104,40 @@ public final class SendResetMailViewModel: ObservableObject {
 
     private func tickCooldown() {
         guard let remaining = state.cooldownSecondsRemaining else { return }
-
         let next = remaining - 1
         if next <= 0 {
             state.cooldownSecondsRemaining = nil
             state.cooldownText = nil
             cooldownTask?.cancel()
             cooldownTask = nil
-
-            recalcDerivedState()
         } else {
             state.cooldownSecondsRemaining = next
-            state.cooldownText = formatCoolDown(next)
+            state.cooldownText = formatCooldown(next)
         }
+        recalcDerivedState()
     }
 
-    private func formatCoolDown(_ seconds: Int) -> String {
+    // MARK: - Helpers
+
+    private func recalcDerivedState() {
+        let emailOk = isValidEmail(state.email)
+        let isCooling = (state.cooldownSecondsRemaining ?? 0) > 0
+        state.isResendEnabled = emailOk && !state.isSubmitting && !isCooling
+    }
+
+    private func isValidEmail(_ raw: String) -> Bool {
+        let email = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return email.count > 5 && email.contains("@") && email.contains(".")
+    }
+
+    private func formatCooldown(_ seconds: Int) -> String {
         if seconds >= 3600 {
-            let h = seconds / 3600
-            let m = (seconds % 3600) / 60
-            let s = seconds % 60
-            return String(format: "%02d:%02d:%02d", h, m, s)
-        } else {
-            let m = seconds / 60
-            let s = seconds % 60
-            return String(format: "%02d:%02d", m, s)
+            return String(format: "%02d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, seconds % 60)
         }
+        return String(format: "%02d:%02d", seconds / 60, seconds % 60)
+    }
+
+    private func emit(_ effect: SendResetMailUiEffect) {
+        effectContinuation.yield(effect)
     }
 }

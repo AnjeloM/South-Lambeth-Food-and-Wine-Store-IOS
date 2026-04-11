@@ -12,7 +12,11 @@ public enum AppRoute: Hashable {
     case login
     case resetmail
     case signup
-    case otp(email: String)
+    // name + password are held in memory only — never written to disk.
+    // Cleared automatically when the route changes away from .otp.
+    case otp(email: String, name: String, password: String)
+    // Arrived via deep link: inventorysys://reset?token=...
+    case resetPassword(token: String)
     case home
 
 }

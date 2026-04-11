@@ -98,7 +98,8 @@ Navigation is **fully centralised** in `AppRootView`.
 Gate (Splash)
   ├── authenticated  → Home
   └── unauthenticated → Welcome → Login / SignUp → (OTP) → Home
-                                 → ForgotPassword → SendResetMail → (OTP)
+                                 → ForgotPassword → SendResetMail
+                                                    (email link) → ResetPassword → Login
 ```
 
 ### Rules
@@ -108,6 +109,23 @@ Gate (Splash)
 - Navigation is **always triggered via Effects**: Screen emits event → VM emits effect → RouteHostView catches it → calls injected closure → AppRootView updates `route`
 - There is **no `NavigationLink` or `NavigationStack` push/pop** — all transitions are root-level swaps animated with `.easeInOut(duration: 0.50)`
 - Views must **never** control navigation directly
+
+### Deep Link — Password Reset
+
+The password reset email contains a deep link: `inventorysys://reset?token=<rawToken>`
+
+`AppRootView` handles it with `.onOpenURL`:
+```swift
+.onOpenURL { url in
+    guard url.scheme == "inventorysys", url.host == "reset",
+          let token = URLComponents(url: url, resolvingAgainstBaseURL: false)
+              .queryItems?.first(where: { $0.name == "token" })?.value
+    else { return }
+    route = .resetPassword(token: token)
+}
+```
+
+**Manual Xcode setup required** (one-time): Target → Info → URL Types → `+` → URL Schemes: `inventorysys`
 
 ---
 
@@ -193,18 +211,34 @@ When Firebase is wired, swap `Demo*` for real implementations at `AppRootView` i
 
 ### Firebase Status
 
-Firebase integration is **not yet connected**. Current stubs:
+Auth flows are substantially wired. One stub remains pending a Firebase Auth swap.
 
-| Protocol | Stub | Status |
-|---|---|---|
-| `SessionManaging` | `LocalSessionManager` | UserDefaults boolean — swap for `FirebaseSessionManager` |
-| `EmailOtpServicing` | `DemoEmailOtpService` | Accepts `"123456"` / `"1234"` in previews |
-| `TestEmailSending` | `DemoTestEmailSender` | Simulates 600ms latency |
-| `FirebaseCallableTestEmailSender` | (empty file) | Implementation pending |
+| Flow | Protocol | Production impl | File | Status |
+|---|---|---|---|---|
+| Session check / save / clear | `SessionManaging` | `LocalSessionManager` | `Domain/Session/` | **Pending** — UserDefaults; swap for `FirebaseSessionManager` |
+| Login | `LoginAuthenticating` | `FirebaseLoginAuthenticator` | `Domain/Firebase/` | Wired — `Auth.auth().signIn` |
+| Register user | `UserRegistering` | `FirebaseUserRegistrar` | `Domain/Firebase/` | Wired — `registerUser` Cloud Function |
+| Send sign-up OTP | `SignUpOtpSending` | `FirebaseSignUpOtpSender` | `Presentation/SignUp/SignUpDependencies.swift` | Wired — `sendEmailOtp` Cloud Function |
+| Verify OTP | `EmailOtpServicing` | `FirebaseEmailOtpService` | `Domain/Firebase/` | Wired — `verifyEmailOtp` Cloud Function |
+| Send password reset email | `PasswordResetSending` | `FirebasePasswordResetSender` | `Domain/Firebase/` | Wired — `requestPasswordResetLink` Cloud Function |
+| Reset password with token | `PasswordResetting` | `FirebasePasswordResetter` | `Domain/Firebase/` | Wired — `resetPasswordWithToken` Cloud Function |
 
-`DemoSessionChecker` still exists for previews/tests only. Do not use it in production paths.
+`Demo*` stubs exist for every protocol — previews and unit tests only. Never use them in `AppRootView`.
 
-When wiring Firebase, replace `LocalSessionManager` with a `FirebaseSessionManager` that reads `Auth.auth().currentUser != nil`. Only `ContentView` needs to change.
+**Remaining Firebase swap:** Replace `LocalSessionManager` in `ContentView.swift` with a `FirebaseSessionManager` that reads `Auth.auth().currentUser != nil`. No other file needs to change.
+
+### Deployed Cloud Functions (`functions/src/index.ts`, region: `europe-north1`)
+
+| Function | Purpose |
+|---|---|
+| `sendEmailOtp` | Generates 4-digit OTP, hashes+salts, stores in `email_otp` Firestore collection, sends via AWS SES |
+| `verifyEmailOtp` | Re-hashes entered OTP with stored salt, timing-safe compare, deletes record on success |
+| `registerUser` | Creates Firebase Auth user + writes `users` Firestore document |
+| `requestPasswordResetLink` | Generates secure token, hashes+salts, stores in `password_reset_tokens`, sends deep link email |
+| `resetPasswordWithToken` | Validates token, updates Firebase Auth password, invalidates token |
+| `sendTestEmail` | Retained in backend — not called from iOS app |
+
+AWS SES is **out of sandbox** — all functions send to any email address.
 
 ---
 
@@ -251,13 +285,38 @@ Escalating resend cooldown: `60s → 2m → 5m → 30m → 1h`
 - Defined in `cooldownPresets: [Int]`
 - Cooldown starts immediately on VM init (OTP sent from SignUp before navigation)
 - 4-digit OTP input supports paste-spread across individual boxes
+- OTP TTL sent to backend: **300 seconds** (5 minutes) — set in `FirebaseSignUpOtpSender` and `FirebaseEmailOtpService.resendOtp`
+
+### OTP Input — Focus & Autofill Rules (`EmailOtpVerificationScreen`)
+
+**Critical — do not regress these patterns:**
+
+- `.textContentType(.oneTimeCode)` is applied **only to box 0**. Applying it to all 4 boxes causes iOS autofill to freeze the keyboard when surfacing the "From Messages" suggestion.
+- Focus advancement is driven by `.onChange(of: state.otpDigits[index])` on each box, **not** inside the `Binding` setter. Modifying `@FocusState` inside a `Binding` setter runs during SwiftUI's view-update cycle and causes re-entrant updates / UI freezes.
+- All `state` mutations in `applyOtpInput` and `recalcDerived` are batched: copy `state` into a local `var`, mutate the copy, assign back once — a single `objectWillChange` publish per event.
+- Paste-spread logic (`digitsOnly.count > 1`) lives in `EmailOtpVerificationViewModel.applyOtpInput`; focus jumps after paste are handled in the `.onChange` modifier via `fieldAfterPastedDigits(from:count:)`.
+
+### Password Reset Flow
+
+Full end-to-end flow across `SendResetMail` → email → deep link → `ResetPassword`:
+
+1. User enters email on `SendResetMailScreen` → VM calls `FirebasePasswordResetSender.sendResetLink`
+2. Backend (`requestPasswordResetLink`) generates token, hashes it, stores hash, sends email — **always returns neutral response** regardless of whether the email exists (prevents account enumeration)
+3. Email contains deep link: `inventorysys://reset?token=<rawToken>`
+4. Tapping the link opens the app → `AppRootView.onOpenURL` parses the token → `route = .resetPassword(token:)`
+5. User enters new password on `ResetPasswordScreen` → VM calls `FirebasePasswordResetter.resetPassword`
+6. Backend (`resetPasswordWithToken`) validates token (existence, expiry, used flag), updates Firebase Auth password, deletes token
+7. On success: toast + navigate to Login. On failure: inline error with reason (`expired` / `used` / `invalid`)
+
+Password strength rules are enforced both client-side (`ResetPasswordViewModel.isStrongPassword`) and server-side (`isStrongPassword` in Cloud Functions) — **both must stay in sync**.
 
 ### Security Rules (client-side)
 
-- Never perform OTP validation on-device — always call the Cloud Function
+- Never perform OTP or token validation on-device — always call the Cloud Function
 - Never store raw tokens in UserDefaults — always use Keychain
 - Never expose Firebase project secrets in source code
-- Firestore rules must enforce TTL on temporary secure documents (OTP records, reset tokens)
+- Firestore rules must enforce TTL on temporary secure documents (`email_otp`, `password_reset_tokens` collections)
+- `SendResetMailViewModel` swallows backend errors intentionally — neutral UX prevents email enumeration attacks
 
 ---
 

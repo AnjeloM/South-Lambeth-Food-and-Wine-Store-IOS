@@ -6,7 +6,5 @@ public enum LoginUiEffect: Equatable {
     case navigateSignUp
     case navigateHome
     
-    // Later implementation
-    // case showToast(String)
-    // case showAlert(title: String, message: String)
+    case showToast(String)
 }

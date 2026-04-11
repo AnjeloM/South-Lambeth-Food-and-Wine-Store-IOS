@@ -8,12 +8,11 @@ public struct SendResetMailRouteHostView: View {
     private let onShowToast: (String) -> Void
 
     public init(
-        viewModel: SendResetMailViewModel? = nil,
+        sender: PasswordResetSending = DemoPasswordResetSender(),
         onNavigateBack: @escaping () -> Void,
         onShowToast: @escaping (String) -> Void
     ) {
-        let vm = viewModel ?? SendResetMailViewModel()
-        _viewModel = StateObject(wrappedValue: vm)
+        _viewModel = StateObject(wrappedValue: SendResetMailViewModel(sender: sender))
         self.onNavigateBack = onNavigateBack
         self.onShowToast = onShowToast
     }

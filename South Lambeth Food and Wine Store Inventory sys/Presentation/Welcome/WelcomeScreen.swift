@@ -1,9 +1,3 @@
-//
-//  Untitled.swift
-//  South Lambeth Food and Wine Store Inventory sys
-//
-//  Created by Mariyan Anjelo on 18/01/2026.
-//
 import SwiftUI
 
 public struct WelcomeScreen: View {
@@ -12,7 +6,7 @@ public struct WelcomeScreen: View {
 
     public init(
         state: WelcomeUiState,
-        onEvent: @escaping (WelcomeUiEvent) -> Void,
+        onEvent: @escaping (WelcomeUiEvent) -> Void
     ) {
         self.state = state
         self.onEvent = onEvent
@@ -24,6 +18,7 @@ public struct WelcomeScreen: View {
         ZStack {
             AppTheme.Colors.background(scheme)
                 .ignoresSafeArea()
+
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(state.headlineText)
@@ -32,60 +27,48 @@ public struct WelcomeScreen: View {
                         .multilineTextAlignment(.leading)
                         .lineSpacing(6)
                         .padding(.top, AppTheme.Layout.topPadding)
-                    
+
                     Spacer().frame(height: 8)
-                    
+
                     brandDescription
                 }
-                    .padding(.horizontal, AppTheme.Layout.screenHPadding)
-                    .padding(.bottom, 16)
-                
+                .padding(.horizontal, AppTheme.Layout.screenHPadding)
+                .padding(.bottom, 16)
+
                 Spacer()
 
-                VStack(spacing: AppTheme.Layout.buttonSpacing) {
-                    AppPillButton(
-                        title: state.sendTestEmaitButtonTitle,
-                        isLoading: state.isSendingTestEmail,
-                        isEnabled: !state.isSendingTestEmail,
-                        action: { onEvent(.sendTestEmailTapped) }
-                    )
-                    AppPillButton(
-                        title: state.getStartedButtonTitle,
-                        isLoading: false,
-                        isEnabled: !state.isSendingTestEmail,
-                        action: { onEvent(.getStartedTapped) }
-                    )
-                }
+                AppPillButton(
+                    title: state.getStartedButtonTitle,
+                    isLoading: false,
+                    isEnabled: true,
+                    action: { onEvent(.getStartedTapped) }
+                )
                 .padding(.horizontal, AppTheme.Layout.screenHPadding)
-            
+                .padding(.bottom, AppTheme.Layout.screenHPadding)
             }
         }
     }
 
     private var brandDescription: some View {
-        let hightlight = AppTheme.Colors.primaryText(scheme)
+        let highlight = AppTheme.Colors.primaryText(scheme)
         let body = AppTheme.Colors.secondaryText(scheme)
 
         var attributed = AttributedString("")
 
-        // Highlight 1
         var part1 = AttributedString(state.brandHighlight1)
-        part1.foregroundColor = Color(hightlight)
+        part1.foregroundColor = Color(highlight)
         part1.inlinePresentationIntent = .emphasized
         attributed += part1
 
-        // Normal 2
         var part2 = AttributedString(state.brandNormal2)
         part2.foregroundColor = Color(body)
         attributed += part2
 
-        // Highlight 2
         var part3 = AttributedString(state.brandHighlight2)
-        part3.foregroundColor = Color(hightlight)
+        part3.foregroundColor = Color(highlight)
         part3.inlinePresentationIntent = .emphasized
         attributed += part3
 
-        // Normal 3
         var part4 = AttributedString(state.brandNormal3)
         part4.foregroundColor = Color(body)
         attributed += part4
@@ -104,4 +87,5 @@ public struct WelcomeScreen: View {
 
 #Preview("WelcomeScreen - Dark") {
     WelcomeScreen(state: WelcomeUiState(), onEvent: { _ in })
+        .preferredColorScheme(.dark)
 }

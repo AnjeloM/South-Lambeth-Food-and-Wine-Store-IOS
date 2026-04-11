@@ -51,19 +51,28 @@ public struct SignUpScreen: View {
                         .submitLabel(.next)
                         .onSubmit { focusedField = .email }
 
-                        OutlinedTextField(
-                            title: state.emailLabel,
-                            text: Binding(
-                                get: { state.email },
-                                set: { onEvent(.emailChanged($0)) }
-                            ),
-                            keyboard: .emailAddress,
-                            textContentType: .emailAddress,
-                            autocapitalization: .never
-                        )
-                        .focused($focusedField, equals: .email)
-                        .submitLabel(.next)
-                        .onSubmit { focusedField = .password }
+                        VStack(alignment: .leading, spacing: 4) {
+                            OutlinedTextField(
+                                title: state.emailLabel,
+                                text: Binding(
+                                    get: { state.email },
+                                    set: { onEvent(.emailChanged($0)) }
+                                ),
+                                keyboard: .emailAddress,
+                                textContentType: .emailAddress,
+                                autocapitalization: .never
+                            )
+                            .focused($focusedField, equals: .email)
+                            .submitLabel(.next)
+                            .onSubmit { focusedField = .password }
+
+                            if let emailError = state.emailError {
+                                Text(emailError)
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.Colors.error(scheme))
+                                    .padding(.horizontal, 4)
+                            }
+                        }
 
                         OutlinedPasswordField(
                             title: state.passwordLabel,
@@ -103,6 +112,14 @@ public struct SignUpScreen: View {
                     Spacer(minLength: 0)
 
                     VStack(spacing: 12) {
+                        AppPillButton(
+                            title: state.signUpButtonText,
+                            isLoading: state.isLoading,
+                            isEnabled: !state.isLoading
+                        ) {
+                            onEvent(.signUpTapped)
+                        }
+
                         AppPillButton(
                             title: state.googleButtonText,
                             icon: .custom(AnyView(GoogleGlyph()))

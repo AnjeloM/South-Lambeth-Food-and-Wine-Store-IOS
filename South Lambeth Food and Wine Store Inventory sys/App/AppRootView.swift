@@ -11,9 +11,11 @@ public struct AppRootView: View {
     // MARK: Firebase – pending
     // Replace LocalSessionManager with FirebaseSessionManager once Firebase Auth is wired.
     private let sessionManager: SessionManaging
+    private let registrar: UserRegistering
 
     public init(sessionManager: SessionManaging) {
         self.sessionManager = sessionManager
+        self.registrar = FirebaseUserRegistrar()
     }
 
     // Simple app-level toast state (placeholder UI)
@@ -27,6 +29,17 @@ public struct AppRootView: View {
                     toastOverlay
                 }
         }
+        .onOpenURL { url in
+            // Deep link: inventorysys://reset?token=<rawToken>
+            guard
+                url.scheme == "inventorysys",
+                url.host == "reset",
+                let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
+                !token.isEmpty
+            else { return }
+            route = .resetPassword(token: token)
+        }
     }
 
     @ViewBuilder
@@ -39,7 +52,6 @@ public struct AppRootView: View {
 
         case .welcome:
             WelcomeRouteHostView(
-                testEmailSender: FirebaseCallableTestEmailSender(),
                 onNavigate: { welcomeRoute in
                     switch welcomeRoute {
                     case .signIn:
@@ -50,40 +62,59 @@ public struct AppRootView: View {
 
         case .login:
             LoginRouteHostView(
+                authenticator: FirebaseLoginAuthenticator(),
                 onNavigateBack: { route = .welcome },
                 onNavigateForgotPassword: { route = .resetmail },
                 onNavigateSignUp: { route = .signup },
                 onNavigateHome: {
                     sessionManager.saveSession()
                     route = .home
-                }
+                },
+                onShowToast: { message in showToast(message) }
             )
 
         case .resetmail:
             SendResetMailRouteHostView(
+                sender: FirebasePasswordResetSender(),
                 onNavigateBack: { route = .login },
-                onShowToast: { message in
-                    showToast(message)
-                }
+                onShowToast: { message in showToast(message) }
+            )
+
+        case let .resetPassword(token):
+            ResetPasswordRouteHostView(
+                token: token,
+                resetter: FirebasePasswordResetter(),
+                onNavigateToLogin: { route = .login },
+                onShowToast: { message in showToast(message) }
             )
 
         case .signup:
             SignUpRouteHostView(
+                otpSender: FirebaseSignUpOtpSender(),
                 onNavigateBack: { route = .login },
                 onOpenURL: { _ in /* later: open safari */ },
-                onNavigateOtp: { email in route = .otp(email: email) },
+                onNavigateOtp: { email, name, password in
+                    route = .otp(email: email, name: name, password: password)
+                },
                 onContinueWithGoogle: { /* later: google sign-in */  },
                 onContinueWithApple: { /* later: apple sign-in */  }
             )
 
-        case let .otp(email):
+        case let .otp(email, name, password):
             EmailOtpVerificationRouteHostView(
                 email: email,
-                service: DemoEmailOtpService(),
+                service: FirebaseEmailOtpService(),
                 onBack: { route = .signup },
                 onVerified: {
-                    sessionManager.saveSession()
-                    route = .home
+                    Task {
+                        do {
+                            try await registrar.register(email: email, name: name, password: password)
+                            sessionManager.saveSession()
+                            route = .home
+                        } catch {
+                            showToast("Registration failed: \(error.localizedDescription)")
+                        }
+                    }
                 },
                 onToast: { message in showToast(message) }
             )
