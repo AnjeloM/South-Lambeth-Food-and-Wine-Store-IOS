@@ -53,7 +53,7 @@ public struct HomeScreen: View {
         case .home:
             HomeDashboardView(onDrawerTapped: { isDrawerOpen = true })
         case .inventory:
-            InventoryScreen(onDrawerTapped: { isDrawerOpen = true })
+            InventoryRouteHostView(onDrawerTapped: { isDrawerOpen = true })
         case .report:
             ReportScreen(onDrawerTapped: { isDrawerOpen = true })
         case .categories:

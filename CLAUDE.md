@@ -489,12 +489,54 @@ Never use a hardcoded top padding on the scanner — insets differ across device
 
 `HomeState` contains only `selectedTab: AppNavTab`. The sign-out button has been removed from the dashboard; logout is now exclusively in `AppDrawer`.
 
-Upcoming dashboard content:
+`HomeScreen.tabContent` switches on `state.selectedTab` and renders:
+- `.home` → `HomeDashboardView` (placeholder with store name/icon)
+- `.inventory` → `InventoryRouteHostView` (fully wired MVI screen)
+- `.report` → `ReportScreen`
+- `.categories` → `CategoriesScreen`
+
+Each tab receives `onDrawerTapped: { isDrawerOpen = true }` from `HomeScreen`.
+
+Upcoming dashboard (`.home` tab) content:
 - Inventory statistics (total items, total value, low stock count)
 - Stock overview by category
 - Filters (category, low stock, expiry, etc.)
 - Recent stock updates / audit log
 - Product quick actions (scan barcode, add item, export PDF)
+
+### Inventory Screen
+
+Fully implemented on the MVI 5-file contract. Files: `InventoryUiState.swift`, `InventoryUiEvent.swift`, `InventoryUiEffect.swift`, `InventoryViewModel.swift`, `InventoryRouteHostView.swift`, `InventoryScreen.swift`.
+
+**Key models (defined in `InventoryUiState.swift`):**
+
+| Type | Role |
+|---|---|
+| `InventoryItem` | `id`, `name`, `category`, `sku`, `stock`, `icon`; computed `isLowStock` (`stock > 0 && stock < 10`), `isOutOfStock` (`stock == 0`) |
+| `InventoryFilter` | `.totalItems` / `.lowStock` / `.outOfStock` — single-select |
+| `InventoryUiState` | Week context (`selectedWeek/Month/Year`), `inventoryExistsForSelectedWeek`, `activeFilter`, `searchText`, `allItems`; derived `filteredItems`, stat counts, `weekHeaderLabel` |
+
+**Features:**
+- Week-context header bar with "Change" button → `InventoryWeekPickerSheet`
+- Dynamic primary CTA: "Create New Inventory" (week has no data) or "Edit Inventory" (week has data); controlled by `inventoryExistsForSelectedWeek`
+- Three compact filter stat cards (Total Items / Low Stock / Out of Stock) — tap to filter the list
+- Item list with out-of-stock / low-stock indicators; empty state when filter returns no results
+- Search via `AppSearchFilterBar` (binding bridge in screen, event via `.searchChanged`)
+
+**`InventoryWeekPickerSheet`** (private, inside `InventoryScreen.swift`):
+- Calendar-style week picker; each row = one ISO week
+- Month/year navigation arrows + compact year wheel (`2020–2035`)
+- Tapping a row fires `onWeekSelected`, `onMonthSelected`, `onYearSelected` events
+- Presented as `.sheet(isPresented:)` — `@State private var isPickerPresented` lives in `InventoryScreen` (pure UI concern, not in VM)
+
+**Mock data:**
+- `InventoryUiState.mockItems` — 10 items covering Wine, Beer, Spirits, Soft Drinks, Snacks
+- `InventoryUiState.weeksWithInventory: Set<Int> = [13, 14, 15]` — demo weeks that simulate existing inventory; replace with Firestore query once data layer is wired
+
+**Pending (`// MARK: Firebase – pending`):**
+- `InventoryUiEffect` is currently empty; future effects: `navigateToCreateInventory(weekId:)` and `navigateToEditInventory(weekId:)` once the inventory data layer is wired
+- `onTapCreateOrEditInventory` in VM is a `break` stub — wire to effect emission once routes exist
+- Replace mock items and `weeksWithInventory` with `InventoryRepository` Firestore calls
 
 ---
 
