@@ -5,7 +5,7 @@ import Foundation
 // A single shop belonging to the owner.
 // latitude/longitude are reserved for future Google Maps picker integration.
 
-public struct OwnerShopEntry: Identifiable, Equatable {
+public struct OwnerShopEntry: Identifiable, Equatable, Hashable {
     public var id: UUID
     public var name: String
     public var address: String
@@ -54,6 +54,8 @@ public struct OwnerSignUpUiState: Equatable {
 
     // MARK: Shops list
     public var shops: [OwnerShopEntry] = []
+    /// The shop the owner has designated as their primary / default location.
+    public var defaultShopId: UUID? = nil
 
     // MARK: Shop add/edit sheet
     public var isShopSheetPresented: Bool = false
@@ -75,6 +77,12 @@ public struct OwnerSignUpUiState: Equatable {
 
     /// True only when the user has typed the magic word.
     public var isDeleteConfirmValid: Bool { deleteConfirmText == "CONFIRM" }
+
+    /// Convenience accessor for the currently selected default shop.
+    public var defaultShop: OwnerShopEntry? {
+        guard let id = defaultShopId else { return nil }
+        return shops.first(where: { $0.id == id })
+    }
 
     /// Title shown in the shop sheet header.
     public var shopSheetTitle: String { editingShopId == nil ? "Add Shop" : "Edit Shop" }

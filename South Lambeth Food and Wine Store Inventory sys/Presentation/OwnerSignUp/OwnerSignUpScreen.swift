@@ -242,7 +242,110 @@ public struct OwnerSignUpScreen: View {
 
             // Add Shop button
             addShopButton
+
+            // Default shop picker — only shown once shops exist
+            if !state.shops.isEmpty {
+                defaultShopSection
+            }
         }
+    }
+
+    // MARK: Default Shop Section
+
+    private var defaultShopSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.accent(scheme))
+                Text("Default Shop")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                Spacer()
+                Text("Required")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+            }
+
+            VStack(spacing: 8) {
+                ForEach(state.shops) { shop in
+                    defaultShopRow(shop)
+                }
+            }
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
+                .fill(AppTheme.Colors.surfaceContainer(scheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
+                .strokeBorder(AppTheme.Colors.fieldBorderVariant(scheme), lineWidth: 1)
+        )
+    }
+
+    @ViewBuilder
+    private func defaultShopRow(_ shop: OwnerShopEntry) -> some View {
+        let isSelected = state.defaultShopId == shop.id
+        Button {
+            onEvent(.defaultShopSelected(id: shop.id))
+        } label: {
+            HStack(spacing: 12) {
+                // Radio indicator
+                ZStack {
+                    Circle()
+                        .strokeBorder(
+                            isSelected ? AppTheme.Colors.accent(scheme) : AppTheme.Colors.fieldBorder(scheme),
+                            lineWidth: 1.5
+                        )
+                        .frame(width: 20, height: 20)
+                    if isSelected {
+                        Circle()
+                            .fill(AppTheme.Colors.accent(scheme))
+                            .frame(width: 11, height: 11)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(shop.name)
+                        .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                        .foregroundStyle(
+                            isSelected
+                                ? AppTheme.Colors.primaryText(scheme)
+                                : AppTheme.Colors.secondaryText(scheme)
+                        )
+                    Text(shop.address)
+                        .font(.system(size: 11))
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(AppTheme.Colors.accent(scheme))
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(isSelected
+                        ? AppTheme.Colors.accent(scheme).opacity(0.08)
+                        : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(
+                        isSelected ? AppTheme.Colors.accent(scheme) : Color.clear,
+                        lineWidth: 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
     }
 
     // MARK: Empty shops placeholder
@@ -732,10 +835,10 @@ private struct DeleteConfirmSheet: View {
         var s = OwnerSignUpUiState()
         s.name  = "Nishan Perera"
         s.email = "nishan@example.com"
-        s.shops = [
-            OwnerShopEntry(name: "South Lambeth Store",   address: "12 South Lambeth Rd, London SW8 1RT", phone: "02079 000123", locationLabel: "Vauxhall, London"),
-            OwnerShopEntry(name: "Stockwell Off Licence", address: "45 Stockwell Rd, London SW9 9BT",     phone: "02079 004567", locationLabel: "Stockwell, London"),
-        ]
+        let shop1 = OwnerShopEntry(name: "South Lambeth Store",   address: "12 South Lambeth Rd, London SW8 1RT", phone: "02079 000123", locationLabel: "Vauxhall, London")
+        let shop2 = OwnerShopEntry(name: "Stockwell Off Licence", address: "45 Stockwell Rd, London SW9 9BT",     phone: "02079 004567", locationLabel: "Stockwell, London")
+        s.shops = [shop1, shop2]
+        s.defaultShopId = shop1.id
         return s
     }()
     OwnerSignUpScreen(state: state, onEvent: { _ in })

@@ -40,6 +40,8 @@ public struct SignUpScreen: View {
         ZStack {
             AppTheme.Colors.background(scheme)
                 .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture { focusedField = nil }
 
             VStack(alignment: .leading, spacing: 0) {
                 AppTopBar(
@@ -168,11 +170,6 @@ public struct SignUpScreen: View {
                 .onAppear { onEvent(.onAppear) }
             }
             .scrollDismissesKeyboard(.interactively)
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    focusedField = nil
-                }
-            )
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
@@ -230,9 +227,10 @@ public struct SignUpScreen: View {
             pickerRow(
                 label: "Shop Owner",
                 icon: "person.crop.circle.fill",
-                placeholder: "Select a shop owner",
+                placeholder: state.isLoadingOwners ? "Loading owners…" : "Select a shop owner",
                 value: state.selectedOwner.map { "\($0.name) — \($0.storeName)" },
-                isEnabled: true,
+                isEnabled: !state.isLoadingOwners,
+                isLoading: state.isLoadingOwners,
                 showClearButton: state.selectedOwner != nil,
                 onClear: { onEvent(.clearOwnerSelection) },
                 onTap: { onEvent(.ownerPickerTapped) }
@@ -270,6 +268,7 @@ public struct SignUpScreen: View {
         placeholder: String,
         value: String?,
         isEnabled: Bool,
+        isLoading: Bool = false,
         showClearButton: Bool,
         onClear: @escaping () -> Void,
         onTap: @escaping () -> Void
@@ -303,7 +302,11 @@ public struct SignUpScreen: View {
 
                     Spacer()
 
-                    if showClearButton {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .tint(AppTheme.Colors.secondaryText(scheme))
+                    } else if showClearButton {
                         Button(action: onClear) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 16))

@@ -19,6 +19,7 @@ public enum OwnerSignUpUiEvent {
     case addShopTapped
     case editShopTapped(id: UUID)
     case deleteShopTapped(id: UUID)
+    case defaultShopSelected(id: UUID)
 
     // MARK: Shop add/edit sheet
     case draftShopNameChanged(String)

@@ -12,10 +12,12 @@ public struct AppRootView: View {
     // Replace LocalSessionManager with FirebaseSessionManager once Firebase Auth is wired.
     private let sessionManager: SessionManaging
     private let registrar: UserRegistering
+    private let ownerRegistrar: OwnerRegistering
 
     public init(sessionManager: SessionManaging) {
-        self.sessionManager = sessionManager
-        self.registrar = FirebaseUserRegistrar()
+        self.sessionManager  = sessionManager
+        self.registrar       = FirebaseUserRegistrar()
+        self.ownerRegistrar  = FirebaseOwnerRegistrar()
     }
 
     // Simple app-level toast state (placeholder UI)
@@ -110,13 +112,65 @@ public struct AppRootView: View {
 
         case .ownerSignUp:
             OwnerSignUpRouteHostView(
+                otpSender: FirebaseSignUpOtpSender(),
                 onNavigateBack: { route = .roleSelection },
-                onShowToast: { message in showToast(message) }
+                onShowToast: { message in showToast(message) },
+                onNavigateToOtp: { email, name, password, shops, defaultShopId in
+                    route = .ownerOtp(
+                        email: email,
+                        name: name,
+                        password: password,
+                        shops: shops,
+                        defaultShopId: defaultShopId
+                    )
+                },
+                onLoadingChanged: { isBlocking = $0 }
+            )
+
+        case let .ownerOtp(email, name, password, shops, defaultShopId):
+            EmailOtpVerificationRouteHostView(
+                email: email,
+                service: FirebaseEmailOtpService(),
+                onBack: { route = .ownerSignUp },
+                onVerified: {
+                    Task {
+                        isBlocking = true
+                        do {
+                            let shopPayloads = shops.map { s in
+                                OwnerShopPayload(
+                                    shopId:        s.id.uuidString,
+                                    name:          s.name,
+                                    address:       s.address,
+                                    phone:         s.phone,
+                                    locationLabel: s.locationLabel,
+                                    latitude:      s.latitude,
+                                    longitude:     s.longitude
+                                )
+                            }
+                            try await ownerRegistrar.registerOwner(
+                                name:          name,
+                                email:         email,
+                                password:      password,
+                                shops:         shopPayloads,
+                                defaultShopId: defaultShopId.uuidString
+                            )
+                            sessionManager.saveSession()
+                            isBlocking = false
+                            route = .home
+                        } catch {
+                            isBlocking = false
+                            showToast("Registration failed: \(error.localizedDescription)")
+                        }
+                    }
+                },
+                onToast: { message in showToast(message) },
+                onLoadingChanged: { isBlocking = $0 }
             )
 
         case .signup:
             SignUpRouteHostView(
                 otpSender: FirebaseSignUpOtpSender(),
+                ownerFetcher: FirebaseOwnerFetcher(),
                 onNavigateBack: { route = .roleSelection },
                 onOpenURL: { _ in /* later: open safari */ },
                 onNavigateOtp: { email, name, password in

@@ -40,6 +40,7 @@ public struct HomeScreen: View {
                 isOpen: $isDrawerOpen,
                 onLogout: { onEvent(.onSignOutTapped) },
                 onSetPrintOrderTapped: { onEvent(.openSetPrintOrder) },
+                onManageShopTapped: { onEvent(.openManageShop) },
                 defaultPrintList: state.defaultPrintList
             )
         }

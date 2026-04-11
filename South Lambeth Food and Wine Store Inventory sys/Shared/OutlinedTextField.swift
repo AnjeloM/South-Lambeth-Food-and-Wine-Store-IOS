@@ -4,13 +4,13 @@ public struct OutlinedTextField: View {
     public let title: String
     public let placeholder: String
     @Binding public var text: String
-    
+
     public let keyboard: UIKeyboardType
     public let textContentType: UITextContentType?
     public let autocapitalization: TextInputAutocapitalization
     public let isDisabled: Bool
     public let accessibilityLabel: String?
-    
+
     @Environment(\.colorScheme) private var scheme
 
     public init(
@@ -40,19 +40,24 @@ public struct OutlinedTextField: View {
                 .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
 
             TextField(placeholder, text: $text)
-            .keyboardType(keyboard)
-            .textContentType(textContentType)
-            .textInputAutocapitalization(autocapitalization)
-            .autocorrectionDisabled(true)
-            .font(AppTheme.Typography.fieldValue)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
-                    .strokeBorder(AppTheme.Colors.fieldBorder(scheme), lineWidth: AppTheme.Layout.fieldBorderWidth)
-            )
-            .disabled(isDisabled)
-            .accessibilityLabel(accessibilityLabel ?? title)
+                .keyboardType(keyboard)
+                .textContentType(textContentType)
+                .textInputAutocapitalization(autocapitalization)
+                .autocorrectionDisabled(true)
+                .font(AppTheme.Typography.fieldValue)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 16)
+                .background(
+                    // Keep background fill if you add one later
+                    Color.clear
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
+                        .strokeBorder(AppTheme.Colors.fieldBorder(scheme), lineWidth: AppTheme.Layout.fieldBorderWidth)
+                        .allowsHitTesting(false) // <- ensure taps go to the TextField
+                )
+                .disabled(isDisabled)
+                .accessibilityLabel(accessibilityLabel ?? title)
         }
     }
 }

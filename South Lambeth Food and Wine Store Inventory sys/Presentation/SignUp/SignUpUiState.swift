@@ -3,16 +3,15 @@ import Foundation
 // MARK: - SignUpOwner
 //
 // Represents a registered owner visible to users during sign-up.
-// MARK: Firebase – pending: replace mock data with a Firestore query
-// (e.g. owners collection where isApproved == true).
+// id is the Firestore document ID (Firebase Auth UID) — not a UUID.
 
 public struct SignUpOwner: Identifiable, Equatable {
-    public let id: UUID
+    public let id: String
     public let name: String
     public let storeName: String
     public let shops: [SignUpShop]
 
-    public init(id: UUID = UUID(), name: String, storeName: String, shops: [SignUpShop]) {
+    public init(id: String = UUID().uuidString, name: String, storeName: String, shops: [SignUpShop]) {
         self.id = id
         self.name = name
         self.storeName = storeName
@@ -23,11 +22,11 @@ public struct SignUpOwner: Identifiable, Equatable {
 // MARK: - SignUpShop
 
 public struct SignUpShop: Identifiable, Equatable {
-    public let id: UUID
+    public let id: String
     public let name: String
     public let address: String
 
-    public init(id: UUID = UUID(), name: String, address: String) {
+    public init(id: String = UUID().uuidString, name: String, address: String) {
         self.id = id
         self.name = name
         self.address = address
@@ -88,9 +87,11 @@ public struct SignUpUiState: Equatable {
     // After OTP verification the app will submit a join-request to that owner
     // for approval. MARK: Firebase – pending (join-request API call).
 
-    /// All registered owners available for selection.
-    /// MARK: Firebase – pending: replace with live Firestore query.
-    public var availableOwners: [SignUpOwner] = SignUpUiState.mockOwners
+    /// All registered owners fetched from Firestore on screen appear.
+    public var availableOwners: [SignUpOwner] = []
+
+    /// True while owners are being fetched from Firestore.
+    public var isLoadingOwners: Bool = false
 
     /// The owner the user has selected.
     public var selectedOwner: SignUpOwner? = nil

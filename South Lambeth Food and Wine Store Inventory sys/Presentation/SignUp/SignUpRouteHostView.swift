@@ -16,6 +16,7 @@ public struct SignUpRouteHostView: View {
 
     public init(
         otpSender: SignUpOtpSending = DemoSignUpOtpSender(),
+        ownerFetcher: OwnerFetching = DemoOwnerFetcher(),
         onNavigateBack: @escaping () -> Void,
         onOpenURL: @escaping (URL) -> Void,
         onNavigateOtp: @escaping (String, String, String) -> Void,
@@ -23,7 +24,7 @@ public struct SignUpRouteHostView: View {
         onContinueWithApple: @escaping () -> Void,
         onLoadingChanged: @escaping (Bool) -> Void = { _ in }
     ) {
-        _viewModel = StateObject(wrappedValue: SignUpViewModel(otpSender: otpSender))
+        _viewModel = StateObject(wrappedValue: SignUpViewModel(otpSender: otpSender, ownerFetcher: ownerFetcher))
         self.onNavigateBack = onNavigateBack
         self.onOpenURL = onOpenURL
         self.onNavigateOtp = onNavigateOtp

@@ -11,10 +11,16 @@ public final class OwnerSignUpViewModel: ObservableObject {
     public let effects: AsyncStream<OwnerSignUpUiEffect>
     private let effectContinuation: AsyncStream<OwnerSignUpUiEffect>.Continuation
 
+    private let otpSender: SignUpOtpSending
+
     // MARK: - Init
 
-    public init(initialState: OwnerSignUpUiState? = nil) {
-        self.state = initialState ?? OwnerSignUpUiState()
+    public init(
+        initialState: OwnerSignUpUiState? = nil,
+        otpSender: SignUpOtpSending = DemoSignUpOtpSender()
+    ) {
+        self.state     = initialState ?? OwnerSignUpUiState()
+        self.otpSender = otpSender
 
         var cont: AsyncStream<OwnerSignUpUiEffect>.Continuation!
         self.effects = AsyncStream(bufferingPolicy: .bufferingNewest(10)) { cont = $0 }
@@ -75,6 +81,9 @@ public final class OwnerSignUpViewModel: ObservableObject {
             state.deleteConfirmText = ""
             state.isDeleteConfirmPresented = true
 
+        case .defaultShopSelected(let id):
+            state.defaultShopId = id
+
         // MARK: Shop add/edit sheet
 
         case .draftShopNameChanged(let v):
@@ -107,6 +116,10 @@ public final class OwnerSignUpViewModel: ObservableObject {
         case .confirmDeleteTapped:
             guard state.isDeleteConfirmValid, let id = state.shopPendingDeleteId else { return }
             state.shops.removeAll { $0.id == id }
+            // If the deleted shop was the default, clear or auto-reassign.
+            if state.defaultShopId == id {
+                state.defaultShopId = state.shops.first?.id
+            }
             state.isDeleteConfirmPresented = false
             state.shopPendingDeleteId = nil
             state.deleteConfirmText = ""
@@ -148,14 +161,21 @@ public final class OwnerSignUpViewModel: ObservableObject {
             state.shops[idx] = state.draftShop
         } else {
             state.shops.append(state.draftShop)
+            // Auto-select the first shop added as the default.
+            if state.shops.count == 1 {
+                state.defaultShopId = state.shops[0].id
+            }
         }
 
         state.isShopSheetPresented = false
     }
 
-    // MARK: - Submit (frontend stub)
+    // MARK: - Submit
 
     private func submit() async {
+        guard !state.isLoading else { return }
+
+        // ── Field validation ──────────────────────────────────────────────
         let name  = state.name.trimmingCharacters(in: .whitespaces)
         let email = state.email.trimmingCharacters(in: .whitespaces).lowercased()
 
@@ -189,10 +209,27 @@ public final class OwnerSignUpViewModel: ObservableObject {
             emit(.showToast("Please add at least one shop before signing up."))
             return
         }
+        guard let defaultShopId = state.defaultShopId else {
+            emit(.showToast("Please select a default shop before signing up."))
+            return
+        }
 
-        // MARK: Firebase – pending
-        // Replace with OTP send + registration flow once backend is wired.
-        emit(.showToast("Owner registration coming soon — backend integration pending."))
+        // ── Send OTP ──────────────────────────────────────────────────────
+        state.isLoading = true
+        do {
+            try await otpSender.sendOtp(to: email)
+            state.isLoading = false
+            emit(.navigateToOtp(
+                email:         email,
+                name:          name,
+                password:      state.password,
+                shops:         state.shops,
+                defaultShopId: defaultShopId
+            ))
+        } catch {
+            state.isLoading = false
+            emit(.showToast("Failed to send verification code. Please try again."))
+        }
     }
 
     // MARK: - Helpers

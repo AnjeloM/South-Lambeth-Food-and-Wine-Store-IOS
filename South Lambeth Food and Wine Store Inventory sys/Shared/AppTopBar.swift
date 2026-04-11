@@ -12,18 +12,21 @@ public struct AppTopBar: View {
     public let title: String
     public let showBack: Bool
     public let onBack: () -> Void
-
     public let showsShadow: Bool
+    /// Optional view placed in the trailing slot. When nil a transparent spacer keeps the title centred.
+    public let trailingContent: AnyView?
 
     public init(
         title: String,
         showBack: Bool = true,
         showsShadow: Bool = true,
+        trailingContent: AnyView? = nil,
         onBack: @escaping () -> Void
     ) {
         self.title = title
         self.showBack = showBack
         self.showsShadow = showsShadow
+        self.trailingContent = trailingContent
         self.onBack = onBack
     }
 
@@ -53,7 +56,11 @@ public struct AppTopBar: View {
 
             Spacer()
 
-            Color.clear.frame(width: 44, height: 44)
+            if let trailing = trailingContent {
+                trailing
+            } else {
+                Color.clear.frame(width: 44, height: 44)
+            }
         }
         .padding(.top, 2)
         .padding(.bottom, 8)

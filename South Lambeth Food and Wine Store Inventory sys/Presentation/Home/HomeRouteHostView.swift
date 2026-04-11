@@ -4,6 +4,7 @@ public struct HomeRouteHostView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showScanner = false
     @State private var showSetPrintOrder = false
+    @State private var showManageShop = false
 
     private let onNavigateWelcome: () -> Void
 
@@ -25,6 +26,8 @@ public struct HomeRouteHostView: View {
                     showScanner = true
                 case .openSetPrintOrder:
                     showSetPrintOrder = true
+                case .openManageShop:
+                    showManageShop = true
                 }
             }
             .fullScreenCover(isPresented: $showScanner) {
@@ -37,6 +40,12 @@ public struct HomeRouteHostView: View {
                         showSetPrintOrder = false
                         viewModel.onEvent(.onSetPrintOrderClosed)
                     }
+                )
+            }
+            .fullScreenCover(isPresented: $showManageShop) {
+                SwitchShopRouteHostView(
+                    shopManager: FirebaseShopManager(),
+                    onClose: { showManageShop = false }
                 )
             }
     }

@@ -23,6 +23,8 @@ public struct AppDrawer: View {
     public let onLogout: () -> Void
     /// Called when the user taps "Set Print Order" — wires through HomeViewModel/HomeEffect.
     public let onSetPrintOrderTapped: () -> Void
+    /// Called when the user taps "Manage Shop" — wires through HomeViewModel/HomeEffect.
+    public let onManageShopTapped: () -> Void
     /// The default print order list; used by PrintSheetView for real data.
     public let defaultPrintList: PrintOrderList?
 
@@ -30,11 +32,13 @@ public struct AppDrawer: View {
         isOpen: Binding<Bool>,
         onLogout: @escaping () -> Void,
         onSetPrintOrderTapped: @escaping () -> Void = {},
+        onManageShopTapped: @escaping () -> Void = {},
         defaultPrintList: PrintOrderList? = nil
     ) {
         self._isOpen = isOpen
         self.onLogout = onLogout
         self.onSetPrintOrderTapped = onSetPrintOrderTapped
+        self.onManageShopTapped = onManageShopTapped
         self.defaultPrintList = defaultPrintList
     }
 
@@ -229,11 +233,12 @@ public struct AppDrawer: View {
 
     private var menuItems: [DrawerItem] {
         [
-            DrawerItem(icon: "person.fill",            label: "Profile",            action: {}),
-            DrawerItem(icon: "chart.bar.fill",         label: "Report",             action: {}),
-            DrawerItem(icon: "clock.fill",             label: "TimeSheet",          action: {}),
-            DrawerItem(icon: "clock.arrow.circlepath", label: "History",            action: {}),
-            DrawerItem(icon: "doc.text.fill",          label: "Terms & Conditions", action: {}),
+            DrawerItem(icon: "person.fill",              label: "Profile",            action: {}),
+            DrawerItem(icon: "arrow.left.arrow.right",   label: "Manage Shop",        action: { onManageShopTapped() }),
+            DrawerItem(icon: "chart.bar.fill",           label: "Report",             action: {}),
+            DrawerItem(icon: "clock.fill",               label: "TimeSheet",          action: {}),
+            DrawerItem(icon: "clock.arrow.circlepath",   label: "History",            action: {}),
+            DrawerItem(icon: "doc.text.fill",            label: "Terms & Conditions", action: {}),
         ]
     }
 

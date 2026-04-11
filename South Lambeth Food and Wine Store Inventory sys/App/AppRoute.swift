@@ -14,11 +14,19 @@ public enum AppRoute: Hashable {
     /// Intermediate screen: choose "Sign Up as User" or "Sign Up as Owner"
     case roleSelection
     case signup
-    /// Owner onboarding — frontend-only until backend is wired
     case ownerSignUp
     // name + password are held in memory only — never written to disk.
     // Cleared automatically when the route changes away from .otp.
     case otp(email: String, name: String, password: String)
+    /// Owner OTP verification — carries in-memory credentials + shop list.
+    /// Cleared automatically when the route changes away from .ownerOtp.
+    case ownerOtp(
+        email: String,
+        name: String,
+        password: String,
+        shops: [OwnerShopEntry],
+        defaultShopId: UUID
+    )
     // Arrived via deep link: inventorysys://reset?token=...
     case resetPassword(token: String)
     case home

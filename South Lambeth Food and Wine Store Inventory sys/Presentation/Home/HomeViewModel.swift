@@ -40,6 +40,8 @@ public final class HomeViewModel: ObservableObject {
             emit(.openScanner)
         case .openSetPrintOrder:
             emit(.openSetPrintOrder)
+        case .openManageShop:
+            emit(.openManageShop)
         case .onSetPrintOrderClosed:
             loadDefaultPrintList()
         }

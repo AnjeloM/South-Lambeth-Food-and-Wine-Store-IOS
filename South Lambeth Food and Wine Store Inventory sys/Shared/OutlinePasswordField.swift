@@ -4,12 +4,12 @@ public struct OutlinedPasswordField: View {
     public let title: String
     public let placeholder: String
     @Binding public var text: String
-    
+
     public let isVisible: Bool
     public let isDisabled: Bool
     public let accessibilityLabel: String?
     public let onToggleVisibility: () -> Void
-    
+
     @Environment(\.colorScheme) private var scheme
 
     public init(
@@ -61,9 +61,11 @@ public struct OutlinedPasswordField: View {
             }
             .padding(.leading, 14)
             .padding(.vertical, 6)
-            .background(
+            .background(Color.clear)
+            .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
                     .strokeBorder(AppTheme.Colors.fieldBorder(scheme), lineWidth: AppTheme.Layout.fieldBorderWidth)
+                    .allowsHitTesting(false) // <- ensure taps go to the field and button
             )
             .disabled(isDisabled)
             .accessibilityLabel(accessibilityLabel ?? title)

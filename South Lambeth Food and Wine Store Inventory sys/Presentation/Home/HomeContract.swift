@@ -19,10 +19,12 @@ public enum HomeEvent: Equatable {
     case scanTapped
     case openSetPrintOrder
     case onSetPrintOrderClosed
+    case openManageShop
 }
 
 public enum HomeEffect: Equatable {
     case navigateWelcome
     case openScanner
     case openSetPrintOrder
+    case openManageShop
 }

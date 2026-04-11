@@ -9,15 +9,18 @@ public final class SignUpViewModel: ObservableObject {
     private let effectContinuation: AsyncStream<SignUpUiEffect>.Continuation
 
     private let otpSender: SignUpOtpSending
+    private let ownerFetcher: OwnerFetching
 
     // MARK: - Init
 
     public init(
         initialState: SignUpUiState? = nil,
-        otpSender: SignUpOtpSending = DemoSignUpOtpSender()
+        otpSender: SignUpOtpSending = DemoSignUpOtpSender(),
+        ownerFetcher: OwnerFetching = DemoOwnerFetcher()
     ) {
         self.state = initialState ?? SignUpUiState()
         self.otpSender = otpSender
+        self.ownerFetcher = ownerFetcher
 
         var cont: AsyncStream<SignUpUiEffect>.Continuation!
         self.effects = AsyncStream(bufferingPolicy: .bufferingNewest(10)) { cont = $0 }
@@ -31,7 +34,7 @@ public final class SignUpViewModel: ObservableObject {
     public func onEvent(_ event: SignUpUiEvent) {
         switch event {
         case .onAppear:
-            break
+            Task { await loadOwners() }
 
         case .onbackTapped:
             emit(.navigateBack)
@@ -99,6 +102,18 @@ public final class SignUpViewModel: ObservableObject {
         case .signUpTapped:
             Task { await signUp() }
         }
+    }
+
+    // MARK: - Load Owners
+
+    private func loadOwners() async {
+        state.isLoadingOwners = true
+        do {
+            state.availableOwners = try await ownerFetcher.fetchOwners()
+        } catch {
+            emit(.showToast("Failed to load available owners. Please try again."))
+        }
+        state.isLoadingOwners = false
     }
 
     // MARK: - Sign Up

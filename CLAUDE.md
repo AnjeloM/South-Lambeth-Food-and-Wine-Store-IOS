@@ -105,12 +105,30 @@ Gate (Splash)
                                     │               │       → OTP → Home       │
                                     │               └── Sign Up as Owner       │
                                     │                     → OwnerSignUp        │
-                                    │                       (MARK: Firebase – pending)
+                                    │                       → OwnerOTP → Home  │
                                     ├── ForgotPassword → SendResetMail        │
                                     │                     (email link)         │
                                     │                       → ResetPassword ───┘
                                     └── ← back ← RoleSelection / SignUp
 ```
+
+### AppRoute cases
+
+All cases defined in `App/AppRoute.swift`. `AppRoute: Hashable` — all associated value types must be `Hashable`.
+
+| Case | Associated values | Notes |
+|---|---|---|
+| `.gate` | — | Splash / session check |
+| `.welcome` | — | Landing screen |
+| `.login` | — | |
+| `.resetmail` | — | Send password reset email |
+| `.resetPassword` | `token: String` | Arrived via deep link |
+| `.roleSelection` | — | User vs Owner choice |
+| `.signup` | — | Standard user sign-up form |
+| `.otp` | `email`, `name`, `password` | User OTP verification |
+| `.ownerSignUp` | — | Owner sign-up form |
+| `.ownerOtp` | `email`, `name`, `password`, `shops: [OwnerShopEntry]`, `defaultShopId: UUID` | Owner OTP verification; carries full shop list in memory |
+| `.home` | — | Main app |
 
 ### Rules
 
@@ -167,7 +185,7 @@ The app remembers signed-in users across cold launches. No login screen is shown
 | `LocalSessionManager` | Concrete impl — stores `"app.isSignedIn"` boolean in `UserDefaults` |
 
 `AppRootView` owns the `SessionManaging` instance and calls:
-- `sessionManager.saveSession()` — on successful login (`onNavigateHome`) and OTP verification (`onVerified`)
+- `sessionManager.saveSession()` — on successful login (`onNavigateHome`), user OTP verification, and owner OTP verification
 - `sessionManager.clearSession()` — when the user signs out from Home (`onNavigateWelcome`)
 
 `GateViewModel` reads `sessionChecker.isSignedIn()` on launch and routes to `.home` or `.welcome` accordingly.
@@ -222,7 +240,7 @@ When Firebase is wired, swap `Demo*` for real implementations at `AppRootView` i
 |---|---|
 | **Firebase Authentication** | User sign-in, sign-up, session management |
 | **Cloud Firestore** | Cloud database for inventory, users, audit logs |
-| **Google Cloud Functions** | Backend logic: OTP generation, token validation, password reset |
+| **Google Cloud Functions** | Backend logic: OTP generation, token validation, password reset, registration |
 | **Cloudinary** | Product image and file storage |
 
 ### Backend Responsibilities (never implement client-side)
@@ -230,21 +248,23 @@ When Firebase is wired, swap `Demo*` for real implementations at `AppRootView` i
 - Email OTP generation and verification
 - Password reset token creation and validation
 - Token hashing, salting, and TTL enforcement
+- User and owner registration (Auth user creation + Firestore writes)
 - Any sensitive business logic that must not live in the client
 
 ### Firebase Status
-
-Auth flows are substantially wired. One stub remains pending a Firebase Auth swap.
 
 | Flow | Protocol | Production impl | File | Status |
 |---|---|---|---|---|
 | Session check / save / clear | `SessionManaging` | `LocalSessionManager` | `Domain/Session/` | **Pending** — UserDefaults; swap for `FirebaseSessionManager` |
 | Login | `LoginAuthenticating` | `FirebaseLoginAuthenticator` | `Domain/Firebase/` | Wired — `Auth.auth().signIn` |
-| Register user | `UserRegistering` | `FirebaseUserRegistrar` | `Domain/Firebase/` | Wired — `registerUser` Cloud Function |
+| Register standard user | `UserRegistering` | `FirebaseUserRegistrar` | `Domain/Firebase/` | Wired — `registerUser` Cloud Function |
+| Register owner | `OwnerRegistering` | `FirebaseOwnerRegistrar` | `Domain/Firebase/` | Wired — `registerOwner` Cloud Function |
 | Send sign-up OTP | `SignUpOtpSending` | `FirebaseSignUpOtpSender` | `Presentation/SignUp/SignUpDependencies.swift` | Wired — `sendEmailOtp` Cloud Function |
 | Verify OTP | `EmailOtpServicing` | `FirebaseEmailOtpService` | `Domain/Firebase/` | Wired — `verifyEmailOtp` Cloud Function |
 | Send password reset email | `PasswordResetSending` | `FirebasePasswordResetSender` | `Domain/Firebase/` | Wired — `requestPasswordResetLink` Cloud Function |
 | Reset password with token | `PasswordResetting` | `FirebasePasswordResetter` | `Domain/Firebase/` | Wired — `resetPasswordWithToken` Cloud Function |
+| Manage shop (load/add/edit/remove/switch) | `ShopManaging` | `FirebaseShopManager` | `Domain/Firebase/FirebaseShopManager.swift` | Wired — direct Firestore reads/batch writes |
+| Fetch owners for sign-up picker | `OwnerFetching` | `FirebaseOwnerFetcher` | `Presentation/SignUp/SignUpDependencies.swift` | Wired — Firestore query by `role == "owner"` |
 
 `Demo*` stubs exist for every protocol — previews and unit tests only. Never use them in `AppRootView`.
 
@@ -256,12 +276,81 @@ Auth flows are substantially wired. One stub remains pending a Firebase Auth swa
 |---|---|
 | `sendEmailOtp` | Generates 4-digit OTP, hashes+salts, stores in `email_otp` Firestore collection, sends via AWS SES |
 | `verifyEmailOtp` | Re-hashes entered OTP with stored salt, timing-safe compare, deletes record on success |
-| `registerUser` | Creates Firebase Auth user + writes `users` Firestore document |
+| `registerUser` | Creates Firebase Auth user + writes `users` Firestore document (`role: "standard"`, `shopIDs: []`) |
+| `registerOwner` | Creates Firebase Auth user + batch-writes `users` doc (`role: "owner"`), all `shops` docs, and one `employees` doc per shop; rolls back Auth user if batch fails |
 | `requestPasswordResetLink` | Generates secure token, hashes+salts, stores in `password_reset_tokens`, sends deep link email |
 | `resetPasswordWithToken` | Validates token, updates Firebase Auth password, invalidates token |
 | `sendTestEmail` | Retained in backend — not called from iOS app |
 
 AWS SES is **out of sandbox** — all functions send to any email address.
+
+### `OwnerRegistering` protocol (`Domain/Firebase/FirebaseOwnerRegistrar.swift`)
+
+```swift
+public protocol OwnerRegistering {
+    func registerOwner(
+        name: String, email: String, password: String,
+        shops: [OwnerShopPayload], defaultShopId: String
+    ) async throws
+}
+```
+
+`OwnerShopPayload` is a plain value type defined in the same file that maps `OwnerShopEntry` fields to the dict format expected by the `registerOwner` Cloud Function. It is separate from `OwnerShopEntry` so the Domain layer has no import dependency on Presentation.
+
+The `registerOwner` Cloud Function:
+- Validates all fields + password strength + each shop has `shopId`, `name`, `address`
+- Verifies `defaultShopId` is in the shops list
+- Checks for duplicate email in Firebase Auth
+- Creates Firebase Auth user
+- Writes a single Firestore batch: `users/{uid}`, `shops/{shopId}` × N, `employees/{uid}_{shopId}` × N
+- Employee ID is deterministic (`{uid}_{shopId}`) — safe to retry without creating duplicates
+- If batch fails, Auth user is deleted immediately (no orphan accounts)
+
+---
+
+## Firestore Schema
+
+The canonical schema is defined in `firestore/firestore_schema_spec.json`. **Always consult this file before adding or modifying Firestore documents.** Do not rename fields without updating both the schema spec and the Cloud Function that writes to that collection.
+
+### Collections
+
+| Collection | Document ID field | Key fields |
+|---|---|---|
+| `users` | `userID` | `name`, `email`, `role` (`owner`/`supervisor`/`admin`/`standard`), `shopIDs: [string]`, `currentShopID: string?`, `createdAt`, `updatedAt` |
+| `shops` | `shopID` | `name`, `address`, `ownerUserID`, `phone`, `isDefault: bool`, `latitude`, `longitude`, `createdAt`, `updatedAt` |
+| `pendingRequests` | `requestID` | `name`, `email`, `shopID`, `status` (`pending`/`approved`/`rejected`), `requestedAt`, `approvedBy?`, `approvedAt?` |
+| `employees` | `employeeID` | `userID`, `shopID`, `role`, `createdAt`, `updatedAt` |
+| `items` | `itemID` | `name`, `category`, `subcategory`, `size`, `packSize`, `barcode`, `brand`, `supplier?`, `lowStockThreshold`, `inStockThreshold` |
+| `inventory` | `inventoryID` | `itemID`, `shopID`, `quantityOnHand`, `updatedBy`, `updatedAt` |
+| `purchaseRequests` | `requestID` | `shopID`, `items: [{itemID, quantity}]`, `requestedBy`, `requestedAt`, `status`, `approvedBy?`, `approvedAt?` |
+| `timesheets` | `timesheetID` | `userID`, `shopID`, `date` (string), `checkIn` (string), `checkOut` (string), `createdAt` |
+| `notifications` | `notificationID` | `userID`, `shopID`, `title`, `message`, `type`, `referenceID`, `metadata`, `isRead`, `createdAt`, `readAt?`, `createdBy` |
+
+Internal-only collections (not in schema spec, used by Cloud Functions):
+
+| Collection | Purpose |
+|---|---|
+| `email_otp` | Temporary OTP records — TTL-enforced, deleted on successful verify |
+| `password_reset_tokens` | Temporary reset tokens — TTL-enforced, deleted on use |
+| `password_reset_rate` | Per-email rate-limiting for reset requests |
+
+### Seed Script (`firestore/`)
+
+`firestore/seed.ts` is a standalone TypeScript script (separate from deployed functions) that seeds all 9 collections from `firestore/firestore_seed_data.json`.
+
+```bash
+cd firestore
+npm install
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccount.json
+npm run seed:dry    # preview — no writes
+npm run seed        # write all collections
+npm run seed:clear  # delete existing docs first, then seed
+```
+
+- Uses `documentId` from the schema spec for all document IDs
+- Converts ISO date strings → Firestore `Timestamp`; preserves `null` on nullable timestamp fields
+- Writes in dependency order: `users → shops → pendingRequests → employees → items → inventory → purchaseRequests → timesheets → notifications`
+- Batched in 500-op chunks (Firestore limit)
 
 ---
 
@@ -309,6 +398,8 @@ Escalating resend cooldown: `60s → 2m → 5m → 30m → 1h`
 - Cooldown starts immediately on VM init (OTP sent from SignUp before navigation)
 - 4-digit OTP input supports paste-spread across individual boxes
 - OTP TTL sent to backend: **300 seconds** (5 minutes) — set in `FirebaseSignUpOtpSender` and `FirebaseEmailOtpService.resendOtp`
+
+The same `EmailOtpVerificationRouteHostView` is used for both user signup (`.otp` route) and owner signup (`.ownerOtp` route). The `onVerified` closure differs: user OTP calls `registrar.register()`; owner OTP calls `ownerRegistrar.registerOwner()` with the full shop payload.
 
 ### OTP Input — Focus & Autofill Rules (`EmailOtpVerificationScreen`)
 
@@ -378,9 +469,16 @@ Left-side navigation drawer. Used exclusively from `HomeScreen` via `@State priv
 **Structure:**
 - Top: profile pic, "Store Manager" name, "South Lambeth Store" subtitle, close `×` button
 - Middle: scrollable menu rows in two groups separated by a `Divider`:
-  - Group 1 (nav): Profile, Report, TimeSheet, History, Terms & Conditions
+  - Group 1 (nav): Profile, **Manage Shop**, Report, TimeSheet, History, Terms & Conditions
   - Group 2 (print): Set Print Order, Print
 - Bottom: Logout row pinned below a `Divider`, styled in `AppTheme.Colors.error(scheme)`
+
+**Callbacks:**
+| Parameter | Wired to |
+|---|---|
+| `onLogout` | `HomeEvent.onSignOutTapped` |
+| `onSetPrintOrderTapped` | `HomeEvent.openSetPrintOrder` |
+| `onManageShopTapped` | `HomeEvent.openManageShop` |
 
 **Behaviour:**
 - Spring animation (`response: 0.32, dampingFraction: 0.88`) on open/close
@@ -459,11 +557,12 @@ Each affected RouteHostView accepts `onLoadingChanged: @escaping (Bool) -> Void 
 |---|---|
 | `LoginRouteHostView` | `state.isLoading` |
 | `SignUpRouteHostView` | `state.isLoading` |
+| `OwnerSignUpRouteHostView` | `state.isLoading` |
 | `EmailOtpVerificationRouteHostView` | `state.isVerifying` |
 | `SendResetMailRouteHostView` | `state.isSubmitting` |
 | `ResetPasswordRouteHostView` | `state.isLoading` |
 
-The inline OTP registration `Task` in `AppRootView` (`.otp` case) sets `isBlocking` directly before/after `registrar.register(...)`.
+The inline OTP registration `Task` in `AppRootView` (`.otp` and `.ownerOtp` cases) sets `isBlocking` directly before/after the registration call.
 
 ### Theming Rule for All New Components
 
@@ -524,27 +623,43 @@ Intermediate screen inserted between Login → SignUp. Files: `Presentation/Role
 
 ### Owner Sign Up Screen
 
-Frontend-only onboarding screen for store owners. Files: `Presentation/OwnerSignUp/` (full 5-file contract).
+Full onboarding screen for store owners — OTP flow and backend registration fully wired. Files: `Presentation/OwnerSignUp/` (full 5-file contract).
 
 **Features:**
-- Account details section: Name, Email, Password, Retype Password (same password rules as user signup)
+- Account details section: Name, Email, Password, Retype Password (same password strength rules as user signup)
 - **Shop list section** — owner must add at least one shop before submitting
 - Each shop entry: Name, Address, Phone (UK-style mask `XXXXX XXXXXX`), Location (tappable stub — `// MARK: Firebase – pending` for Google Maps picker storing `latitude`/`longitude`)
 - **Add/Edit shop** via `ShopFormSheet` (private sheet in `OwnerSignUpScreen.swift`) — name and address are required; phone and location are optional
 - **Delete shop** requires typing `CONFIRM` exactly in `DeleteConfirmSheet` before the Remove button activates; button animates from disabled (grey) → enabled (red)
+- **Default shop picker** — appears below the shop list once at least one shop is added; radio-button style rows; first shop is auto-selected; re-assigns automatically when the default shop is deleted
 
 **Key models (defined in `OwnerSignUpUiState.swift`):**
 
 | Type | Role |
 |---|---|
-| `OwnerShopEntry` | `id`, `name`, `address`, `phone` (masked), `locationLabel`, `latitude?`, `longitude?` |
-| `OwnerSignUpUiState` | Account fields, `shops: [OwnerShopEntry]`, sheet presentation flags (`isShopSheetPresented`, `isDeleteConfirmPresented`), `draftShop`, `deleteConfirmText`, `isDeleteConfirmValid` |
+| `OwnerShopEntry` | `id: UUID`, `name`, `address`, `phone` (masked), `locationLabel`, `latitude?`, `longitude?`. Conforms to `Identifiable, Equatable, Hashable` (Hashable required by `AppRoute.ownerOtp`). |
+| `OwnerSignUpUiState` | Account fields, `shops: [OwnerShopEntry]`, `defaultShopId: UUID?`, sheet presentation flags, `draftShop`, `deleteConfirmText`, `isLoading` |
+
+**`OwnerSignUpUiEffect` cases:**
+| Effect | When emitted |
+|---|---|
+| `.navigateBack` | Back button tapped |
+| `.showToast(String)` | Validation error or OTP send failure |
+| `.navigateToOtp(email:name:password:shops:defaultShopId:)` | OTP sent successfully — carries full shop list in memory for `registerOwner` call after verification |
+
+**`OwnerSignUpViewModel` dependencies:**
+- `otpSender: SignUpOtpSending` — injected via `OwnerSignUpRouteHostView`; defaults to `DemoSignUpOtpSender` for previews
+
+**Submit flow:**
+1. Validates all fields + password strength + shops not empty + default shop selected
+2. `state.isLoading = true`
+3. Calls `otpSender.sendOtp(to: email)`
+4. On success: `isLoading = false`, emits `.navigateToOtp(...)`
+5. On failure: `isLoading = false`, emits `.showToast("Failed to send verification code. Please try again.")`
 
 **Pending (`// MARK: Firebase – pending`):**
-- `OwnerSignUpUiEffect` has only `navigateBack` and `showToast` — no OTP/registration flow yet
-- `submit()` validates all fields, then shows a toast; replace with OTP + owner-registration Cloud Function when backend is wired
 - `draftShopLocationTapped` shows "Location picker coming soon" toast — replace with Google Maps SDK sheet that writes `locationLabel`, `latitude`, `longitude`
-- Back navigation: `.ownerSignUp` → `.roleSelection`
+- Back navigation from `.ownerOtp` goes to `.ownerSignUp` (form resets); future improvement: preserve form state
 
 ### User Sign Up — Store Assignment
 
@@ -554,13 +669,27 @@ Frontend-only onboarding screen for store owners. Files: `Presentation/OwnerSign
 
 | Type | Role |
 |---|---|
-| `SignUpOwner` | `id`, `name`, `storeName`, `shops: [SignUpShop]` |
-| `SignUpShop` | `id`, `name`, `address` |
+| `SignUpOwner` | `id: String`, `name`, `storeName`, `shops: [SignUpShop]` |
+| `SignUpShop` | `id: String`, `name`, `address` |
+
+**Note:** Both `id` fields are `String` (Firestore document IDs are strings, not `UUID`). `storeName` is derived from `shops.first?.name` in `FirebaseOwnerFetcher` since there is no `storeName` field on the `users` document.
 
 **State additions to `SignUpUiState`:**
-- `availableOwners: [SignUpOwner]` — populated from `mockOwners` (3 owners, 5 shops); replace with Firestore query
+- `availableOwners: [SignUpOwner]` — populated live via `FirebaseOwnerFetcher.fetchOwners()` on `.onAppear`; defaults to `[]`
+- `isLoadingOwners: Bool` — true while `fetchOwners()` is in flight; disables + shows spinner in the owner picker row
 - `selectedOwner: SignUpOwner?`, `selectedShop: SignUpShop?`
 - `isOwnerPickerPresented: Bool`, `isShopPickerPresented: Bool`
+
+**`OwnerFetching` protocol (`Presentation/SignUp/SignUpDependencies.swift`):**
+```swift
+public protocol OwnerFetching {
+    func fetchOwners() async throws -> [SignUpOwner]
+}
+```
+- `FirebaseOwnerFetcher`: queries `users` where `role == "owner"`, then for each owner queries `shops` where `ownerUserID == uid`; derives `storeName` from first shop name
+- `DemoOwnerFetcher`: returns `SignUpUiState.mockOwners` after 600 ms (previews only)
+- `SignUpRouteHostView` accepts `ownerFetcher: OwnerFetching = DemoOwnerFetcher()` — `AppRootView` passes `FirebaseOwnerFetcher()`
+- `SignUpViewModel` calls `Task { await loadOwners() }` on `.onAppear`
 
 **Validation rules (enforced in `SignUpViewModel.signUp()`):**
 1. Owner must be selected
@@ -580,10 +709,103 @@ Frontend-only onboarding screen for store owners. Files: `Presentation/OwnerSign
 
 **Post-OTP flow (`// MARK: Firebase – pending`):**
 - After OTP verification, a join-request must be submitted to the selected owner (`selectedOwner.id`, `selectedShop.id`) for approval before the account becomes active
-- The current `registrar.register()` call in `AppRootView` is a placeholder — replace with a join-request Cloud Function
+- The current `registrar.register()` call in `AppRootView` is a placeholder — replace with a join-request Cloud Function that writes to `pendingRequests` and sends a notification to the owner
 
-**Social sign-in buttons (Google / Apple):**  
+**Social sign-in buttons (Google / Apple):**
 Commented out in `SignUpScreen.swift` — not removed, ready to re-enable once OAuth is wired.
+
+### Manage Shop Screen
+
+Full-screen shop management screen accessible from the drawer via "Manage Shop". Behaviour differs by role: owners can add, edit, and remove shops; standard users switch between assigned shops. Files: `Presentation/SwitchShop/` (full 5-file contract — filenames use `SwitchShop` prefix).
+
+**`SwitchShopEntry`** (defined in `SwitchShopUiState.swift`):
+- `id: String` — Firestore document ID (UUID string for shops, Auth UID for users); **not** `UUID` type
+- `name: String`, `address: String`, `phone: String`, `isCurrentShop: Bool`
+- `isDefaultShop: Bool` — mirrors Firestore `shops/{id}.isDefault`; true when the owner has globally designated this as the active shop for all users
+
+**`SwitchShopUiState`:**
+- `shops: [SwitchShopEntry]` — loaded from Firestore via `ShopManaging`
+- `isOwner: Bool` — set from `users/{uid}.role` on load; controls which owner-only UI elements are shown
+- `isLoadingShops: Bool` — true while `loadShops()` is in flight; screen shows centred `ProgressView`
+- `isSwitching: Bool` — true during a shop switch
+- `isDeletingShop: Bool` — true during a delete call
+- `isSettingDefault: Bool` — true while the Firestore batch to change the global default is in flight
+- `isShopFormPresented: Bool` — controls add/edit sheet
+- `editingShopId: String?` — nil = add mode, non-nil = edit mode
+- `draftName`, `draftAddress`, `draftPhone: String` — form field state
+- `deletingShopId: String?` — non-nil when delete sheet is open
+- `deleteConfirmText: String` — must equal `"CONFIRM"` to enable delete button
+- `pendingSwitchShopId: String?` — non-nil when user taps the toggle (triggers confirm alert)
+- Computed: `currentShop`, `otherShops`, `isFormValid`, `isDeleteConfirmValid`, `shopBeingDeleted`, `pendingSwitchShop`
+- `mockShops` static property — 3 shops with string IDs; first shop has `isCurrentShop: true, isDefaultShop: true`
+
+**`SwitchShopUiEffect`:** `close`, `showToast(String)`
+
+**`SwitchShopUiEvent`:**
+- `.onAppear` — triggers Firestore load
+- `.closeTapped` — emits `.close` effect
+- `.shopTapped(id: String)` — user only: sets `pendingSwitchShopId` (triggers confirm alert)
+- `.switchConfirmed` / `.switchCancelled` — user confirm alert result
+- `.setDefaultShopTapped(id: String)` — owner only: sets global default + current shop for all users
+- `.addShopTapped`, `.editShopTapped(id: String)` — owner: opens `ShopFormSheet`
+- `.draftNameChanged`, `.draftAddressChanged`, `.draftPhoneChanged` — live form field updates
+- `.saveShopTapped` — owner: calls `shopManager.addShop()` or `shopManager.updateShop()`
+- `.shopFormDismissed` — clears draft state
+- `.deleteShopTapped(id: String)` — owner: opens `DeleteConfirmSheet`; guards `shops.count > 1`
+- `.deleteConfirmTextChanged`, `.confirmDeleteTapped`, `.deleteSheetDismissed`
+
+**`ShopManaging` protocol (`Domain/Firebase/FirebaseShopManager.swift`):**
+```swift
+public protocol ShopManaging {
+    func loadShops() async throws -> (entries: [SwitchShopEntry], isOwner: Bool)
+    func addShop(name: String, address: String, phone: String) async throws -> SwitchShopEntry
+    func updateShop(id: String, name: String, address: String, phone: String) async throws
+    func removeShop(id: String) async throws
+    func setDefaultShop(id: String) async throws   // owner: Firestore batch — isDefault flag on all shops
+    func setCurrentShop(id: String) async throws   // all users: writes users/{uid}.currentShopID + UserDefaults
+    func setActiveShop(id: String)                 // synchronous UserDefaults cache only
+    func activeShopId() -> String?                 // reads UserDefaults "app.activeShopId"
+}
+```
+- `FirebaseShopManager` (production): reads `users/{uid}.role` to determine owner vs user; owners query `shops where ownerUserID == uid`; users fetch `users/{uid}.shopIDs[]` then load each shop by ID
+- `loadShops()` active-shop priority: 1) `users/{uid}.currentShopID` from Firestore, 2) UserDefaults `"app.activeShopId"` cache, 3) shop with `isDefault: true`, 4) first shop
+- `addShop()`: batch — `shops/{newId}` (with `isDefault: false`) + `arrayUnion` on `users/{uid}.shopIDs` + `employees/{uid}_{newId}` with `role: "owner"`
+- `removeShop()`: batch — delete `shops/{id}` + `arrayRemove` from `users/{uid}.shopIDs` + delete `employees/{uid}_{id}`; if removed shop was active, also deletes `users/{uid}.currentShopID` field in the same batch
+- `updateShop()`: updates `name`, `address`, `phone`, `updatedAt` on `shops/{id}`
+- `setDefaultShop(id:)`: queries all owner's shops, batch-sets `isDefault: true` on target and `isDefault: false` on all others
+- `setCurrentShop(id:)`: writes `users/{uid}.currentShopID = id` to Firestore + updates UserDefaults cache
+- `DemoShopManager(ownerMode: Bool)`: returns `mockShops` after delays for previews
+
+**Screen layout:**
+- Loading: centred `ProgressView` replaces list when `isLoadingShops == true`
+- Owner view: flat "Your Shops" list; each row has `[ON/OFF toggle] [pencil] [trash]` action buttons; no tap on row body
+- User view: flat "Your Shops" list; each row has an `[ON/OFF toggle]` — tapping an OFF toggle triggers the confirm alert
+- Active row styling: accent border + accent background tint; storefront icon fills when active
+- Green `checkmark.circle.fill` appears inline after the shop name when the toggle is ON
+- Toggle visual: iOS-style pill switch — accent fill + white thumb with ✓ checkmark when ON; grey when OFF
+- Owner toggle: calls `setDefaultShopTapped` → Firestore `isDefault` batch + `setCurrentShop`
+- User toggle: calls `shopTapped` → `.alert` confirm dialog → `setCurrentShop`
+- "Updating default…" spinner overlay while `isSettingDefault == true`
+- Add/Edit sheet (`ShopFormSheet`): Name (required), Address (required), Phone (optional); Save enabled when `isFormValid`
+- Delete sheet (`DeleteConfirmSheet`): trash icon header, `OutlinedTextField` "Type CONFIRM", Remove button animates disabled (grey) → enabled (red) when `deleteConfirmText == "CONFIRM"`
+- Toast banner after switch/add/edit/delete
+
+**Active shop persistence:**
+- **Primary**: `users/{uid}.currentShopID` (String) in Firestore — cross-device, used as the item-list scope key when the inventory screen is wired
+- **Cache**: `UserDefaults "app.activeShopId"` — offline fallback; kept in sync by `setCurrentShop(id:)` and `setActiveShop(id:)`
+- `removeShop()` atomically deletes `currentShopID` from the user doc if the removed shop was active; auto-promotes the first remaining shop via `setCurrentShop`
+- **Future**: scope all `inventory` and `items` Firestore queries by `currentShopID` so each shop's stock is independent
+
+**Wiring (Home chain):**
+```
+AppDrawer.onManageShopTapped
+  → HomeScreen: onEvent(.openManageShop)
+  → HomeViewModel: emit(.openManageShop)
+  → HomeRouteHostView: showManageShop = true → fullScreenCover(SwitchShopRouteHostView(shopManager: FirebaseShopManager()))
+```
+
+**`AppTopBar` — `trailingContent` slot:**
+`AppTopBar` accepts an optional `trailingContent: AnyView?` (default `nil`). When non-nil it renders in the trailing position; otherwise renders a same-size `Color.clear` placeholder to keep the title centred. Used by `SwitchShopScreen` to inject the "Add Shop" button for owners. All existing callers are unaffected.
 
 ### Inventory Screen
 
@@ -617,7 +839,7 @@ Fully implemented on the MVI 5-file contract. Files: `InventoryUiState.swift`, `
 **Pending (`// MARK: Firebase – pending`):**
 - `InventoryUiEffect` is currently empty; future effects: `navigateToCreateInventory(weekId:)` and `navigateToEditInventory(weekId:)` once the inventory data layer is wired
 - `onTapCreateOrEditInventory` in VM is a `break` stub — wire to effect emission once routes exist
-- Replace mock items and `weeksWithInventory` with `InventoryRepository` Firestore calls
+- Replace mock items and `weeksWithInventory` with `InventoryRepository` Firestore calls against the `inventory` and `items` collections
 
 ---
 
