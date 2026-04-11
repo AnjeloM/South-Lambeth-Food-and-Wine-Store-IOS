@@ -9,6 +9,7 @@ public struct SignUpRouteHostView: View {
     private let onNavigateOtp: (String, String, String) -> Void
     private let onContinueWithGoogle: () -> Void
     private let onContinueWithApple: () -> Void
+    private let onLoadingChanged: (Bool) -> Void
 
     @State private var toastMessage: String?
     @State private var isToastPresented: Bool = false
@@ -19,7 +20,8 @@ public struct SignUpRouteHostView: View {
         onOpenURL: @escaping (URL) -> Void,
         onNavigateOtp: @escaping (String, String, String) -> Void,
         onContinueWithGoogle: @escaping () -> Void,
-        onContinueWithApple: @escaping () -> Void
+        onContinueWithApple: @escaping () -> Void,
+        onLoadingChanged: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: SignUpViewModel(otpSender: otpSender))
         self.onNavigateBack = onNavigateBack
@@ -27,10 +29,14 @@ public struct SignUpRouteHostView: View {
         self.onNavigateOtp = onNavigateOtp
         self.onContinueWithGoogle = onContinueWithGoogle
         self.onContinueWithApple = onContinueWithApple
+        self.onLoadingChanged = onLoadingChanged
     }
 
     public var body: some View {
         SignUpScreen(state: viewModel.state, onEvent: viewModel.onEvent)
+            .onChange(of: viewModel.state.isLoading) { _, newValue in
+                onLoadingChanged(newValue)
+            }
             .alert("Notice", isPresented: $isToastPresented) {
                 Button("OK", role: .cancel) {}
             } message: {

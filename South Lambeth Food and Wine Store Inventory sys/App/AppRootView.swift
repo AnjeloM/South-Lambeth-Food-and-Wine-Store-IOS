@@ -21,6 +21,9 @@ public struct AppRootView: View {
     // Simple app-level toast state (placeholder UI)
     @State private var toastMessage: String? = nil
 
+    // Full-screen blocking overlay — true while any async pre-navigation operation is in flight
+    @State private var isBlocking = false
+
     public var body: some View {
         NavigationStack {
             content
@@ -28,6 +31,13 @@ public struct AppRootView: View {
                 .overlay(alignment: .bottom) {
                     toastOverlay
                 }
+                .overlay {
+                    if isBlocking {
+                        AppLoadingOverlay()
+                            .transition(.opacity)
+                    }
+                }
+                .animation(.easeInOut(duration: 0.2), value: isBlocking)
         }
         .onOpenURL { url in
             // Deep link: inventorysys://reset?token=<rawToken>
@@ -70,14 +80,16 @@ public struct AppRootView: View {
                     sessionManager.saveSession()
                     route = .home
                 },
-                onShowToast: { message in showToast(message) }
+                onShowToast: { message in showToast(message) },
+                onLoadingChanged: { isBlocking = $0 }
             )
 
         case .resetmail:
             SendResetMailRouteHostView(
                 sender: FirebasePasswordResetSender(),
                 onNavigateBack: { route = .login },
-                onShowToast: { message in showToast(message) }
+                onShowToast: { message in showToast(message) },
+                onLoadingChanged: { isBlocking = $0 }
             )
 
         case let .resetPassword(token):
@@ -85,7 +97,8 @@ public struct AppRootView: View {
                 token: token,
                 resetter: FirebasePasswordResetter(),
                 onNavigateToLogin: { route = .login },
-                onShowToast: { message in showToast(message) }
+                onShowToast: { message in showToast(message) },
+                onLoadingChanged: { isBlocking = $0 }
             )
 
         case .signup:
@@ -97,7 +110,8 @@ public struct AppRootView: View {
                     route = .otp(email: email, name: name, password: password)
                 },
                 onContinueWithGoogle: { /* later: google sign-in */  },
-                onContinueWithApple: { /* later: apple sign-in */  }
+                onContinueWithApple: { /* later: apple sign-in */  },
+                onLoadingChanged: { isBlocking = $0 }
             )
 
         case let .otp(email, name, password):
@@ -107,16 +121,20 @@ public struct AppRootView: View {
                 onBack: { route = .signup },
                 onVerified: {
                     Task {
+                        isBlocking = true
                         do {
                             try await registrar.register(email: email, name: name, password: password)
                             sessionManager.saveSession()
+                            isBlocking = false
                             route = .home
                         } catch {
+                            isBlocking = false
                             showToast("Registration failed: \(error.localizedDescription)")
                         }
                     }
                 },
-                onToast: { message in showToast(message) }
+                onToast: { message in showToast(message) },
+                onLoadingChanged: { isBlocking = $0 }
             )
         case .home:
             HomeRouteHostView {

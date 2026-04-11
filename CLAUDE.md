@@ -112,9 +112,18 @@ Gate (Splash)
 
 ### Deep Link — Password Reset
 
-The password reset email contains a deep link: `inventorysys://reset?token=<rawToken>`
+The password reset email contains an HTTPS link to Firebase Hosting:
+```
+https://inventory-app-352dc.web.app/reset?token=<rawToken>
+```
 
-`AppRootView` handles it with `.onOpenURL`:
+`public/reset.html` (Firebase Hosting) handles this URL. It immediately attempts a JS redirect to the custom scheme:
+```
+inventorysys://reset?token=<rawToken>
+```
+If the redirect doesn't fire within 2 seconds (e.g. opened in a browser), a fallback "Open App" button is shown.
+
+`AppRootView` handles the custom scheme with `.onOpenURL`:
 ```swift
 .onOpenURL { url in
     guard url.scheme == "inventorysys", url.host == "reset",
@@ -125,7 +134,11 @@ The password reset email contains a deep link: `inventorysys://reset?token=<rawT
 }
 ```
 
+**Why HTTPS intermediary:** Raw `inventorysys://` links fail silently in Gmail, web browsers, and any context where the app is not installed. The Hosting page provides a graceful fallback and works in all email clients.
+
 **Manual Xcode setup required** (one-time): Target → Info → URL Types → `+` → URL Schemes: `inventorysys`
+
+**Firebase Hosting:** Configured in `firebase.json`. Source: `public/`. All routes rewrite to `reset.html`. Deploy with `firebase deploy --only hosting`.
 
 ---
 
@@ -302,8 +315,8 @@ Full end-to-end flow across `SendResetMail` → email → deep link → `ResetPa
 
 1. User enters email on `SendResetMailScreen` → VM calls `FirebasePasswordResetSender.sendResetLink`
 2. Backend (`requestPasswordResetLink`) generates token, hashes it, stores hash, sends email — **always returns neutral response** regardless of whether the email exists (prevents account enumeration)
-3. Email contains deep link: `inventorysys://reset?token=<rawToken>`
-4. Tapping the link opens the app → `AppRootView.onOpenURL` parses the token → `route = .resetPassword(token:)`
+3. Email contains HTTPS link: `https://inventory-app-352dc.web.app/reset?token=<rawToken>`
+4. Tapping the link opens `public/reset.html` (Firebase Hosting) → JS redirects to `inventorysys://reset?token=<rawToken>` → `AppRootView.onOpenURL` parses the token → `route = .resetPassword(token:)`
 5. User enters new password on `ResetPasswordScreen` → VM calls `FirebasePasswordResetter.resetPassword`
 6. Backend (`resetPasswordWithToken`) validates token (existence, expiry, used flag), updates Firebase Auth password, deletes token
 7. On success: toast + navigate to Login. On failure: inline error with reason (`expired` / `used` / `invalid`)
@@ -334,6 +347,7 @@ All reusable UI lives in `Shared/`. When building new screens, use existing comp
 | `AppSearchFilterBar` | `Shared/AppSearchFilterBar.swift` | Search pill + filter button — used on all four main tabs |
 | `AppBottomNavBar` | `Shared/AppBottomNavBar.swift` | Frosted glass tab bar with elevated scan FAB |
 | `AppDrawer` | `Shared/AppDrawer.swift` | Left slide-in navigation drawer with profile, menu items, and logout |
+| `AppLoadingOverlay` | `Shared/AppLoadingOverlay.swift` | Full-screen blocking overlay with spinner — shown during async pre-navigation operations |
 
 ### AppScreenHeader
 
@@ -408,6 +422,38 @@ Theming rule — **always use surface elevation, never inverted colors**:
 - Active tab: `AppTheme.Colors.accent(scheme)`
 - Inactive tab: `AppTheme.Colors.secondaryText(scheme)`
 - Scan FAB: `accent` fill, `buttonText` icon
+
+### AppLoadingOverlay
+
+Full-screen blocking overlay displayed in `AppRootView` during any async operation that precedes a navigation transition (login, OTP verify, password reset, registration).
+
+**Behaviour:**
+- Semi-transparent black scrim (`opacity: 0.45`) + accent-coloured `ProgressView` spinner (scale 1.4×)
+- `allowsHitTesting(true)` — blocks all user interaction while visible
+- Fades in/out via `.animation(.easeInOut(duration: 0.2), value: isBlocking)`
+
+**Wiring pattern:**
+```
+ViewModel.state.isLoading / isVerifying / isSubmitting  (already exists per screen)
+  ↓ .onChange in RouteHostView
+  ↓ onLoadingChanged(Bool) callback
+AppRootView.isBlocking (@State)
+  ↓
+AppLoadingOverlay (overlaid above all content)
+```
+
+Each affected RouteHostView accepts `onLoadingChanged: @escaping (Bool) -> Void = { _ in }` and forwards the ViewModel's loading flag via `.onChange`. `AppRootView` sets `isBlocking` from this callback.
+
+**Affected RouteHostViews and their loading state property:**
+| RouteHostView | VM loading property |
+|---|---|
+| `LoginRouteHostView` | `state.isLoading` |
+| `SignUpRouteHostView` | `state.isLoading` |
+| `EmailOtpVerificationRouteHostView` | `state.isVerifying` |
+| `SendResetMailRouteHostView` | `state.isSubmitting` |
+| `ResetPasswordRouteHostView` | `state.isLoading` |
+
+The inline OTP registration `Task` in `AppRootView` (`.otp` case) sets `isBlocking` directly before/after `registrar.register(...)`.
 
 ### Theming Rule for All New Components
 

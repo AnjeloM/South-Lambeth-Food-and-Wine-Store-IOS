@@ -37,9 +37,22 @@
 		D7901BCF2F1B1B98008B3E60 /* South Lambeth Food and Wine Store Inventory sysUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "South Lambeth Food and Wine Store Inventory sysUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D7E26C7A2F89D14700B294CD /* Exceptions for "South Lambeth Food and Wine Store Inventory sys" folder in "South Lambeth Food and Wine Store Inventory sys" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"South-Lambeth-Food-and-Wine-Store-Inventory-sys-Info.plist",
+			);
+			target = D7901BB72F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D7901BBA2F1B1B97008B3E60 /* South Lambeth Food and Wine Store Inventory sys */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D7E26C7A2F89D14700B294CD /* Exceptions for "South Lambeth Food and Wine Store Inventory sys" folder in "South Lambeth Food and Wine Store Inventory sys" target */,
+			);
 			path = "South Lambeth Food and Wine Store Inventory sys";
 			sourceTree = "<group>";
 		};
@@ -431,6 +444,7 @@
 				DEVELOPMENT_TEAM = L997G6M7F5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "South-Lambeth-Food-and-Wine-Store-Inventory-sys-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Used to scan product barcodes";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -464,6 +478,7 @@
 				DEVELOPMENT_TEAM = L997G6M7F5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "South-Lambeth-Food-and-Wine-Store-Inventory-sys-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Used to scan product barcodes";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

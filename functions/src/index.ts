@@ -359,7 +359,7 @@ export const requestPasswordResetLink = onCall(
       await rlRef.set({ sentAt: now }, { merge: true });
 
       // 4) Send email with deep link
-      const redirectLink = `inventorysys://reset?token=${encodeURIComponent(token)}`;
+      const redirectLink = `https://inventory-app-352dc.web.app/reset?token=${encodeURIComponent(token)}`;
       const minutes = Math.ceil(RESET_TOKEN_TTL_SECONDS / 60);
 
       await sendEmail(

@@ -9,6 +9,7 @@ public struct LoginRouteHostView: View {
     private let onNavigateSignUp: () -> Void
     private let onNavigateHome: () -> Void
     private let onShowToast: (String) -> Void
+    private let onLoadingChanged: (Bool) -> Void
 
     public init(
         authenticator: LoginAuthenticating = DemoLoginAuthenticator(),
@@ -16,7 +17,8 @@ public struct LoginRouteHostView: View {
         onNavigateForgotPassword: @escaping () -> Void = {},
         onNavigateSignUp: @escaping () -> Void = {},
         onNavigateHome: @escaping () -> Void = {},
-        onShowToast: @escaping (String) -> Void = { _ in }
+        onShowToast: @escaping (String) -> Void = { _ in },
+        onLoadingChanged: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: LoginViewModel(authenticator: authenticator))
         self.onNavigateBack = onNavigateBack
@@ -24,6 +26,7 @@ public struct LoginRouteHostView: View {
         self.onNavigateSignUp = onNavigateSignUp
         self.onNavigateHome = onNavigateHome
         self.onShowToast = onShowToast
+        self.onLoadingChanged = onLoadingChanged
     }
 
     public var body: some View {
@@ -31,6 +34,9 @@ public struct LoginRouteHostView: View {
             state: viewModel.state,
             onEvent: viewModel.onEvent
         )
+        .onChange(of: viewModel.state.isLoading) { _, newValue in
+            onLoadingChanged(newValue)
+        }
         .task {
             for await effect in viewModel.effects {
                 handle(effect)

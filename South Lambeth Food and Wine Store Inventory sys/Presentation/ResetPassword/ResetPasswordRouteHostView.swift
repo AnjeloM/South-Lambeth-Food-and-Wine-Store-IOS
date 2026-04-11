@@ -6,16 +6,19 @@ public struct ResetPasswordRouteHostView: View {
 
     private let onNavigateToLogin: () -> Void
     private let onShowToast: (String) -> Void
+    private let onLoadingChanged: (Bool) -> Void
 
     public init(
         token: String,
         resetter: PasswordResetting = DemoPasswordResetter(),
         onNavigateToLogin: @escaping () -> Void,
-        onShowToast: @escaping (String) -> Void
+        onShowToast: @escaping (String) -> Void,
+        onLoadingChanged: @escaping (Bool) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: ResetPasswordViewModel(token: token, resetter: resetter))
         self.onNavigateToLogin = onNavigateToLogin
         self.onShowToast = onShowToast
+        self.onLoadingChanged = onLoadingChanged
     }
 
     public var body: some View {
@@ -23,6 +26,9 @@ public struct ResetPasswordRouteHostView: View {
             state: viewModel.state,
             onEvent: viewModel.send
         )
+        .onChange(of: viewModel.state.isLoading) { _, newValue in
+            onLoadingChanged(newValue)
+        }
         .task {
             for await effect in viewModel.effects {
                 switch effect {
