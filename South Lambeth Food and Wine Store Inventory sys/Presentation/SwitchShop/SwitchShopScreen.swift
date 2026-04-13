@@ -36,6 +36,13 @@ public struct SwitchShopScreen: View {
         )
     }
 
+    private var requestSheetBinding: Binding<Bool> {
+        Binding(
+            get: { state.selectedRequestId != nil },
+            set: { if !$0 { onEvent(.requestSheetDismissed) } }
+        )
+    }
+
     // MARK: - Body
 
     public var body: some View {
@@ -82,10 +89,12 @@ public struct SwitchShopScreen: View {
             }
 
             // MARK: Operation overlay (switching / deleting / setting default)
-            if state.isSwitching || state.isDeletingShop || state.isSettingDefault {
+            if state.isSwitching || state.isDeletingShop || state.isSettingDefault || state.isUpdatingRequest {
                 operationOverlay(
                     message: state.isSwitching
                         ? "Switching shop…"
+                        : state.isUpdatingRequest
+                            ? "Updating request…"
                         : state.isSettingDefault
                             ? "Updating default…"
                             : "Removing shop…"
@@ -121,6 +130,18 @@ public struct SwitchShopScreen: View {
                     onDismiss: { onEvent(.deleteSheetDismissed) }
                 )
                 .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+            }
+        }
+        .sheet(isPresented: requestSheetBinding) {
+            if let request = state.selectedRequest {
+                EmployeeRequestSheet(
+                    request: request,
+                    onApprove: { onEvent(.approveRequestTapped) },
+                    onReject: { onEvent(.rejectRequestTapped) },
+                    onDismiss: { onEvent(.requestSheetDismissed) }
+                )
+                .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.hidden)
             }
         }
@@ -165,6 +186,7 @@ public struct SwitchShopScreen: View {
         if state.shops.isEmpty {
             emptyOwnerView
         } else {
+            requestsSection
             sectionBlock(title: "Your Shops") {
                 VStack(spacing: 10) {
                     ForEach(state.shops) { shop in
@@ -172,6 +194,94 @@ public struct SwitchShopScreen: View {
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var requestsSection: some View {
+        sectionBlock(title: "Requests Received") {
+            VStack(spacing: 0) {
+                Button {
+                    onEvent(.requestsSectionTapped)
+                } label: {
+                    HStack(spacing: 10) {
+                        ZStack {
+                            Circle()
+                                .fill(AppTheme.Colors.accent(scheme).opacity(0.12))
+                                .frame(width: 36, height: 36)
+                            Image(systemName: "bell.badge.fill")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(AppTheme.Colors.accent(scheme))
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Employee Requests")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                            Text(requestSectionSubtitle)
+                                .font(.system(size: 12))
+                                .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                        }
+
+                        Spacer()
+
+                        if !state.employeeRequests.isEmpty {
+                            Text("\(state.employeeRequests.count)")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(AppTheme.Colors.buttonText(scheme))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Capsule().fill(AppTheme.Colors.accent(scheme)))
+                        }
+
+                        Image(systemName: state.isRequestsExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                    }
+                    .padding(14)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if state.isRequestsExpanded {
+                    Divider()
+                        .padding(.horizontal, 14)
+
+                    if state.isLoadingRequests {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .tint(AppTheme.Colors.accent(scheme))
+                            Spacer()
+                        }
+                        .padding(.vertical, 18)
+                    } else if state.employeeRequests.isEmpty {
+                        Text("No pending employee requests right now")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 16)
+                    } else {
+                        VStack(spacing: 10) {
+                            ForEach(state.employeeRequests) { request in
+                                requestRow(request)
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 14)
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
+                    .fill(AppTheme.Colors.surfaceContainer(scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
+                    .strokeBorder(AppTheme.Colors.fieldBorderVariant(scheme), lineWidth: 1)
+            )
+            .animation(.easeInOut(duration: 0.22), value: state.isRequestsExpanded)
         }
     }
 
@@ -196,90 +306,280 @@ public struct SwitchShopScreen: View {
 
     @ViewBuilder
     private func ownerShopRow(_ shop: SwitchShopEntry) -> some View {
-        HStack(spacing: 14) {
-            // Icon
-            shopIcon(shop)
+        let isExpanded   = state.expandedShopIds.contains(shop.id)
+        let isLoading    = state.loadingEmployeesForShop.contains(shop.id)
+        let employees    = state.employeesByShop[shop.id] ?? []
+        let cardFill     = shop.isDefaultShop
+            ? AppTheme.Colors.accent(scheme).opacity(0.06)
+            : AppTheme.Colors.surfaceContainer(scheme)
+        let borderColor  = shop.isDefaultShop
+            ? AppTheme.Colors.accent(scheme).opacity(0.4)
+            : AppTheme.Colors.fieldBorderVariant(scheme)
+        let borderWidth: CGFloat = shop.isDefaultShop ? 1.5 : 1
 
-            // Info
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    Text(shop.name)
-                        .font(.system(size: 15, weight: shop.isDefaultShop ? .semibold : .medium))
-                        .foregroundStyle(AppTheme.Colors.primaryText(scheme))
-                    if shop.isDefaultShop {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.green)
+        VStack(spacing: 0) {
+
+            // MARK: Shop info + action buttons
+            HStack(spacing: 14) {
+                shopIcon(shop)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(shop.name)
+                            .font(.system(size: 15, weight: shop.isDefaultShop ? .semibold : .medium))
+                            .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                        if shop.isDefaultShop {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.green)
+                        }
+                    }
+                    Text(shop.address)
+                        .font(.system(size: 12))
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                        .lineLimit(1)
+                    if !shop.phone.isEmpty {
+                        Text(shop.phone)
+                            .font(.system(size: 11))
+                            .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
                     }
                 }
-                Text(shop.address)
-                    .font(.system(size: 12))
-                    .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
-                    .lineLimit(1)
-                if !shop.phone.isEmpty {
-                    Text(shop.phone)
-                        .font(.system(size: 11))
+
+                Spacer(minLength: 8)
+
+                HStack(spacing: 6) {
+                    Button { onEvent(.setDefaultShopTapped(id: shop.id)) } label: {
+                        activeToggle(isOn: shop.isDefaultShop)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(shop.isDefaultShop || state.isSettingDefault)
+                    .animation(.spring(response: 0.28, dampingFraction: 0.7), value: shop.isDefaultShop)
+
+                    Button { onEvent(.editShopTapped(id: shop.id)) } label: {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(AppTheme.Colors.accent(scheme))
+                            .frame(width: 34, height: 34)
+                            .background(AppTheme.Colors.surfaceContainer(scheme))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+
+                    Button { onEvent(.deleteShopTapped(id: shop.id)) } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(AppTheme.Colors.error(scheme))
+                            .frame(width: 34, height: 34)
+                            .background(AppTheme.Colors.error(scheme).opacity(0.1))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(14)
+
+            // MARK: Employee disclosure bar
+            Divider()
+                .padding(.horizontal, 14)
+
+            Button {
+                onEvent(.shopExpandTapped(id: shop.id))
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.2.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(AppTheme.Colors.accent(scheme).opacity(0.8))
+
+                    Text("Employees")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .scaleEffect(0.55)
+                            .tint(AppTheme.Colors.secondaryText(scheme))
+                    } else if !employees.isEmpty {
+                        Text("(\(employees.count))")
+                            .font(.system(size: 12))
+                            .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                    }
+
+                    Spacer()
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .animation(.easeInOut(duration: 0.2), value: isExpanded)
 
-            Spacer(minLength: 8)
+            // MARK: Expanded employee list
+            if isExpanded {
+                Divider()
+                    .padding(.horizontal, 14)
 
-            // Action buttons
-            HStack(spacing: 6) {
-                // ON/OFF toggle — sets this shop as active for all users
-                Button {
-                    onEvent(.setDefaultShopTapped(id: shop.id))
-                } label: {
-                    activeToggle(isOn: shop.isDefaultShop)
+                if isLoading {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(AppTheme.Colors.accent(scheme))
+                        Spacer()
+                    }
+                    .padding(.vertical, 16)
+                } else if employees.isEmpty {
+                    Text("No employees assigned yet")
+                        .font(.system(size: 12))
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 14)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(employees.enumerated()), id: \.element.id) { index, employee in
+                            employeeRow(employee)
+                            if index < employees.count - 1 {
+                                Divider()
+                                    .padding(.leading, 44)
+                                    .padding(.trailing, 14)
+                            }
+                        }
+                    }
                 }
-                .buttonStyle(.plain)
-                .disabled(shop.isDefaultShop || state.isSettingDefault)
-                .animation(.spring(response: 0.28, dampingFraction: 0.7), value: shop.isDefaultShop)
-
-                // Edit
-                Button {
-                    onEvent(.editShopTapped(id: shop.id))
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(AppTheme.Colors.accent(scheme))
-                        .frame(width: 34, height: 34)
-                        .background(AppTheme.Colors.surfaceContainer(scheme))
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-
-                // Delete
-                Button {
-                    onEvent(.deleteShopTapped(id: shop.id))
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(AppTheme.Colors.error(scheme))
-                        .frame(width: 34, height: 34)
-                        .background(AppTheme.Colors.error(scheme).opacity(0.1))
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
             }
         }
-        .padding(14)
         .background(
             RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
-                .fill(shop.isDefaultShop
-                    ? AppTheme.Colors.accent(scheme).opacity(0.06)
-                    : AppTheme.Colors.surfaceContainer(scheme))
+                .fill(cardFill)
         )
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
-                .strokeBorder(
-                    shop.isDefaultShop
-                        ? AppTheme.Colors.accent(scheme).opacity(0.4)
-                        : AppTheme.Colors.fieldBorderVariant(scheme),
-                    lineWidth: shop.isDefaultShop ? 1.5 : 1
-                )
+                .strokeBorder(borderColor, lineWidth: borderWidth)
         )
+        .animation(.easeInOut(duration: 0.22), value: isExpanded)
+    }
+
+    // MARK: - Employee Row
+
+    @ViewBuilder
+    private func employeeRow(_ employee: ShopEmployee) -> some View {
+        HStack(spacing: 12) {
+            // Avatar circle with initials
+            ZStack {
+                Circle()
+                    .fill(AppTheme.Colors.primaryContainer(scheme))
+                    .frame(width: 30, height: 30)
+                Text(employee.name.prefix(1).uppercased())
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.onPrimaryContainer(scheme))
+            }
+
+            Text(employee.name)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+
+            Spacer()
+
+            Text(employee.roleLabel)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(roleLabelColor(employee.roleLabel))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule().fill(roleLabelColor(employee.roleLabel).opacity(0.12))
+                )
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+    }
+
+    @ViewBuilder
+    private func requestRow(_ request: EmployeeSignupRequest) -> some View {
+        let isHighlighted = state.highlightedRequestId == request.id
+
+        Button {
+            onEvent(.requestTapped(id: request.id))
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(isHighlighted
+                            ? AppTheme.Colors.accent(scheme)
+                            : AppTheme.Colors.primaryContainer(scheme))
+                        .frame(width: 40, height: 40)
+                    Text(request.employeeName.prefix(1).uppercased())
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(isHighlighted
+                            ? AppTheme.Colors.buttonText(scheme)
+                            : AppTheme.Colors.onPrimaryContainer(scheme))
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(request.employeeName)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                    Text(request.employeeEmail)
+                        .font(.system(size: 12))
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                    Text(request.shopName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(AppTheme.Colors.accent(scheme))
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 6) {
+                    if isHighlighted {
+                        Circle()
+                            .fill(AppTheme.Colors.accent(scheme))
+                            .frame(width: 8, height: 8)
+                    }
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                }
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
+                    .fill(isHighlighted
+                        ? AppTheme.Colors.accent(scheme).opacity(0.08)
+                        : AppTheme.Colors.background(scheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
+                    .strokeBorder(
+                        isHighlighted
+                            ? AppTheme.Colors.accent(scheme)
+                            : AppTheme.Colors.fieldBorderVariant(scheme),
+                        lineWidth: isHighlighted ? 1.5 : 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var requestSectionSubtitle: String {
+        if state.isLoadingRequests {
+            return "Loading requests…"
+        }
+        if state.employeeRequests.isEmpty {
+            return "No pending requests"
+        }
+        return "\(state.employeeRequests.count) pending request\(state.employeeRequests.count == 1 ? "" : "s")"
+    }
+
+    private func roleLabelColor(_ label: String) -> Color {
+        switch label {
+        case "Owner":      return AppTheme.Colors.accent(scheme)
+        case "Supervisor": return .orange
+        case "Admin":      return .purple
+        default:           return AppTheme.Colors.secondaryText(scheme)
+        }
     }
 
     // MARK: - User Shop Row
@@ -672,6 +972,120 @@ private struct DeleteConfirmSheet: View {
     }
 }
 
+// MARK: - EmployeeRequestSheet
+
+private struct EmployeeRequestSheet: View {
+    let request: EmployeeSignupRequest
+    let onApprove: () -> Void
+    let onReject: () -> Void
+    let onDismiss: () -> Void
+
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(AppTheme.Colors.fieldBorderVariant(scheme))
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 16)
+
+            VStack(spacing: 14) {
+                profileAvatar
+
+                VStack(spacing: 4) {
+                    Text(request.employeeName)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+
+                    Text("Employee signup request")
+                        .font(.system(size: 13))
+                        .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                }
+            }
+            .padding(.bottom, 20)
+
+            VStack(spacing: 12) {
+                detailRow(label: "Email", value: request.employeeEmail)
+                detailRow(label: "Requested Shop", value: request.shopName)
+                detailRow(label: "Status", value: request.status.capitalized)
+                detailRow(label: "Requested At", value: request.requestedAt.formatted(date: .abbreviated, time: .shortened))
+            }
+            .padding(.horizontal, AppTheme.Layout.screenHPadding)
+
+            Spacer()
+
+            Divider().padding(.top, 20)
+
+            VStack(spacing: 10) {
+                Button("Approve") { onApprove() }
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(AppTheme.Colors.accent(scheme))
+                    .foregroundStyle(AppTheme.Colors.buttonText(scheme))
+                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous))
+                    .buttonStyle(.plain)
+
+                Button("Reject") { onReject() }
+                    .font(.system(size: 16, weight: .semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(AppTheme.Colors.error(scheme).opacity(0.14))
+                    .foregroundStyle(AppTheme.Colors.error(scheme))
+                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous))
+                    .buttonStyle(.plain)
+
+                Button("Decide Later") { onDismiss() }
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(AppTheme.Colors.surfaceContainer(scheme))
+                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous))
+                    .buttonStyle(.plain)
+            }
+            .padding(.horizontal, AppTheme.Layout.screenHPadding)
+            .padding(.top, 14)
+            .padding(.bottom, 32)
+        }
+        .background(AppTheme.Colors.background(scheme))
+    }
+
+    @ViewBuilder
+    private var profileAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(AppTheme.Colors.primaryContainer(scheme))
+                .frame(width: 82, height: 82)
+            Text(request.employeeName.prefix(1).uppercased())
+                .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(AppTheme.Colors.onPrimaryContainer(scheme))
+        }
+    }
+
+    @ViewBuilder
+    private func detailRow(label: String, value: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text(label)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                .frame(width: 92, alignment: .leading)
+
+            Text(value)
+                .font(.system(size: 14))
+                .foregroundStyle(AppTheme.Colors.primaryText(scheme))
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.Layout.fieldCornerRadius, style: .continuous)
+                .fill(AppTheme.Colors.surfaceContainer(scheme))
+        )
+    }
+}
+
 // MARK: - Previews
 
 #Preview("ManageShop - User - Light") {
@@ -706,6 +1120,8 @@ private struct DeleteConfirmSheet: View {
             var s = SwitchShopUiState()
             s.shops = SwitchShopUiState.mockShops
             s.isOwner = true
+            s.expandedShopIds = ["mock-shop-1"]
+            s.employeesByShop = ["mock-shop-1": ShopEmployee.mockEmployees(for: "mock-shop-1")]
             return s
         }(),
         onEvent: { _ in }
@@ -719,6 +1135,8 @@ private struct DeleteConfirmSheet: View {
             var s = SwitchShopUiState()
             s.shops = SwitchShopUiState.mockShops
             s.isOwner = true
+            s.expandedShopIds = ["mock-shop-1"]
+            s.employeesByShop = ["mock-shop-1": ShopEmployee.mockEmployees(for: "mock-shop-1")]
             return s
         }(),
         onEvent: { _ in }

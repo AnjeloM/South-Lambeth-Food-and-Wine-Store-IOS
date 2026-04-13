@@ -29,5 +29,7 @@ public enum AppRoute: Hashable {
     )
     // Arrived via deep link: inventorysys://reset?token=...
     case resetPassword(token: String)
+    /// User is authenticated but has no shop assignment — must request to join a shop before Home.
+    case joinShop
     case home
 }

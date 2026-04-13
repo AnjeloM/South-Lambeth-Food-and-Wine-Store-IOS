@@ -10,15 +10,21 @@ public final class SwitchShopViewModel: ObservableObject {
     @Published public private(set) var effect: SwitchShopUiEffect?
 
     private let shopManager: ShopManaging
+    private let requestManager: EmployeeRequestManaging
+    private let initialHighlightedRequestID: String?
 
     // MARK: - Init
 
     public init(
         initialState: SwitchShopUiState? = nil,
-        shopManager: ShopManaging = DemoShopManager()
+        shopManager: ShopManaging = DemoShopManager(),
+        requestManager: EmployeeRequestManaging = DemoEmployeeRequestCenter(),
+        initialHighlightedRequestID: String? = nil
     ) {
         self.state = initialState ?? SwitchShopUiState()
         self.shopManager = shopManager
+        self.requestManager = requestManager
+        self.initialHighlightedRequestID = initialHighlightedRequestID
     }
 
     deinit {}
@@ -30,7 +36,10 @@ public final class SwitchShopViewModel: ObservableObject {
 
         // MARK: Lifecycle
         case .onAppear:
-            Task { await loadShops() }
+            Task {
+                await loadShops()
+                await loadEmployeeRequests()
+            }
 
         // MARK: Navigation
         case .closeTapped:
@@ -120,6 +129,38 @@ public final class SwitchShopViewModel: ObservableObject {
             guard let shop = state.shops.first(where: { $0.id == id }),
                   !shop.isDefaultShop else { return }
             Task { await setDefaultShop(id: id) }
+
+        // MARK: Owner — employee list expand / collapse
+        case .shopExpandTapped(let id):
+            if state.expandedShopIds.contains(id) {
+                state.expandedShopIds.remove(id)
+            } else {
+                state.expandedShopIds.insert(id)
+                // Lazy load — only fetch once per session
+                if state.employeesByShop[id] == nil {
+                    Task { await loadEmployees(for: id) }
+                }
+            }
+
+        // MARK: Owner — employee signup requests
+        case .requestsSectionTapped:
+            state.isRequestsExpanded.toggle()
+
+        case .requestTapped(let id):
+            state.selectedRequestId = id
+            state.highlightedRequestId = id
+
+        case .requestSheetDismissed:
+            state.selectedRequestId = nil
+            state.highlightedRequestId = nil
+
+        case .approveRequestTapped:
+            guard let request = state.selectedRequest else { return }
+            Task { await approveRequest(request.id) }
+
+        case .rejectRequestTapped:
+            guard let request = state.selectedRequest else { return }
+            Task { await rejectRequest(request.id) }
         }
     }
 
@@ -135,6 +176,29 @@ public final class SwitchShopViewModel: ObservableObject {
             emit(.showToast("Failed to load shops: \(error.localizedDescription)"))
         }
         state.isLoadingShops = false
+    }
+
+    // MARK: - Load Employee Requests
+
+    private func loadEmployeeRequests() async {
+        guard state.isOwner else {
+            state.employeeRequests = []
+            state.isRequestsExpanded = false
+            return
+        }
+
+        state.isLoadingRequests = true
+        do {
+            state.employeeRequests = try await requestManager.loadPendingRequests()
+            if let initialHighlightedRequestID,
+               state.employeeRequests.contains(where: { $0.id == initialHighlightedRequestID }) {
+                state.highlightedRequestId = initialHighlightedRequestID
+                state.isRequestsExpanded = true
+            }
+        } catch {
+            emit(.showToast("Failed to load requests: \(error.localizedDescription)"))
+        }
+        state.isLoadingRequests = false
     }
 
     // MARK: - Save Shop (add or edit)
@@ -224,6 +288,19 @@ public final class SwitchShopViewModel: ObservableObject {
         state.deleteConfirmText = ""
     }
 
+    // MARK: - Load Employees
+
+    private func loadEmployees(for shopId: String) async {
+        state.loadingEmployeesForShop.insert(shopId)
+        do {
+            let employees = try await shopManager.loadEmployees(for: shopId)
+            state.employeesByShop[shopId] = employees
+        } catch {
+            emit(.showToast("Failed to load employees: \(error.localizedDescription)"))
+        }
+        state.loadingEmployeesForShop.remove(shopId)
+    }
+
     // MARK: - Set Default Shop
 
     private func setDefaultShop(id: String) async {
@@ -243,6 +320,40 @@ public final class SwitchShopViewModel: ObservableObject {
             emit(.showToast("Failed to update active shop: \(error.localizedDescription)"))
         }
         state.isSettingDefault = false
+    }
+
+    // MARK: - Request Actions
+
+    private func approveRequest(_ id: String) async {
+        state.isUpdatingRequest = true
+        let approvedShopID = state.selectedRequest?.shopID
+        do {
+            try await requestManager.approveRequest(id: id)
+            await loadEmployeeRequests()
+            if let approvedShopID, approvedShopID == state.currentShop?.id {
+                await loadEmployees(for: approvedShopID)
+            }
+            state.selectedRequestId = nil
+            state.highlightedRequestId = nil
+            emit(.showToast("Employee approved."))
+        } catch {
+            emit(.showToast("Failed to approve request: \(error.localizedDescription)"))
+        }
+        state.isUpdatingRequest = false
+    }
+
+    private func rejectRequest(_ id: String) async {
+        state.isUpdatingRequest = true
+        do {
+            try await requestManager.rejectRequest(id: id)
+            await loadEmployeeRequests()
+            state.selectedRequestId = nil
+            state.highlightedRequestId = nil
+            emit(.showToast("Request rejected."))
+        } catch {
+            emit(.showToast("Failed to reject request: \(error.localizedDescription)"))
+        }
+        state.isUpdatingRequest = false
     }
 
     // MARK: - Effect Emitter

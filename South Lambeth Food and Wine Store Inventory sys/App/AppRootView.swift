@@ -13,11 +13,13 @@ public struct AppRootView: View {
     private let sessionManager: SessionManaging
     private let registrar: UserRegistering
     private let ownerRegistrar: OwnerRegistering
+    private let shopChecker: ShopAssignmentChecking
 
     public init(sessionManager: SessionManaging) {
         self.sessionManager  = sessionManager
         self.registrar       = FirebaseUserRegistrar()
         self.ownerRegistrar  = FirebaseOwnerRegistrar()
+        self.shopChecker     = FirebaseShopAssignmentChecker()
     }
 
     // Simple app-level toast state (placeholder UI)
@@ -58,8 +60,12 @@ public struct AppRootView: View {
     private var content: some View {
         switch route {
         case .gate:
-            GateRouteHostView(sessionChecker: sessionManager) { gateRoute in
-                route = (gateRoute == .home) ? .home : .welcome
+            GateRouteHostView(sessionChecker: sessionManager, shopChecker: shopChecker) { gateRoute in
+                switch gateRoute {
+                case .home:     route = .home
+                case .joinShop: route = .joinShop
+                case .welcome:  route = .welcome
+                }
             }
 
         case .welcome:
@@ -80,7 +86,7 @@ public struct AppRootView: View {
                 onNavigateSignUp: { route = .roleSelection },
                 onNavigateHome: {
                     sessionManager.saveSession()
-                    route = .home
+                    Task { await navigateAfterShopCheck() }
                 },
                 onShowToast: { message in showToast(message) },
                 onLoadingChanged: { isBlocking = $0 }
@@ -193,7 +199,8 @@ public struct AppRootView: View {
                             try await registrar.register(email: email, name: name, password: password)
                             sessionManager.saveSession()
                             isBlocking = false
-                            route = .home
+                            // New users never have shop assignments — always go to joinShop
+                            route = .joinShop
                         } catch {
                             isBlocking = false
                             showToast("Registration failed: \(error.localizedDescription)")
@@ -203,12 +210,33 @@ public struct AppRootView: View {
                 onToast: { message in showToast(message) },
                 onLoadingChanged: { isBlocking = $0 }
             )
+        case .joinShop:
+            JoinShopRouteHostView(
+                sessionManager: sessionManager,
+                onNavigateWelcome: {
+                    sessionManager.clearSession()
+                    route = .welcome
+                }
+            )
+
         case .home:
             HomeRouteHostView {
                 sessionManager.clearSession()
                 route = .welcome
             }
         }
+    }
+
+    // MARK: - Post-Login Shop Check
+
+    /// After a successful login, check if the user has a shop assignment.
+    /// Routes to `.home` if they do, or `.joinShop` if they don't.
+    @MainActor
+    private func navigateAfterShopCheck() async {
+        isBlocking = true
+        let hasShops = await shopChecker.hasShopAssignment()
+        isBlocking = false
+        route = hasShops ? .home : .joinShop
     }
 
     // MARK: - Toast (temporary, front-end only)
@@ -248,4 +276,3 @@ public struct AppRootView: View {
 #Preview("AppRoot = Signed In -> Home") {
     AppRootView(sessionManager: LocalSessionManager())
 }
-

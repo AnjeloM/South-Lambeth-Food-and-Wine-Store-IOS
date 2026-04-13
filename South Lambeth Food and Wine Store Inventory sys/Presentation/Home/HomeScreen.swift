@@ -41,7 +41,8 @@ public struct HomeScreen: View {
                 onLogout: { onEvent(.onSignOutTapped) },
                 onSetPrintOrderTapped: { onEvent(.openSetPrintOrder) },
                 onManageShopTapped: { onEvent(.openManageShop) },
-                defaultPrintList: state.defaultPrintList
+                defaultPrintList: state.defaultPrintList,
+                profile: state.drawerProfile
             )
         }
     }
@@ -52,13 +53,29 @@ public struct HomeScreen: View {
     private var tabContent: some View {
         switch state.selectedTab {
         case .home:
-            HomeDashboardView(onDrawerTapped: { isDrawerOpen = true })
+            HomeDashboardView(
+                hasUnreadNotification: state.unreadNotification != nil,
+                onNotificationTapped: { onEvent(.notificationTapped) },
+                onDrawerTapped: { isDrawerOpen = true }
+            )
         case .inventory:
-            InventoryRouteHostView(onDrawerTapped: { isDrawerOpen = true })
+            InventoryRouteHostView(
+                hasUnreadNotification: state.unreadNotification != nil,
+                onNotificationTapped: { onEvent(.notificationTapped) },
+                onDrawerTapped: { isDrawerOpen = true }
+            )
         case .report:
-            ReportScreen(onDrawerTapped: { isDrawerOpen = true })
+            ReportScreen(
+                hasUnreadNotification: state.unreadNotification != nil,
+                onNotificationTapped: { onEvent(.notificationTapped) },
+                onDrawerTapped: { isDrawerOpen = true }
+            )
         case .categories:
-            CategoriesScreen(onDrawerTapped: { isDrawerOpen = true })
+            CategoriesScreen(
+                hasUnreadNotification: state.unreadNotification != nil,
+                onNotificationTapped: { onEvent(.notificationTapped) },
+                onDrawerTapped: { isDrawerOpen = true }
+            )
         }
     }
 }
@@ -66,6 +83,8 @@ public struct HomeScreen: View {
 // MARK: - Home Dashboard (the .home tab content)
 
 private struct HomeDashboardView: View {
+    let hasUnreadNotification: Bool
+    let onNotificationTapped: () -> Void
     let onDrawerTapped: () -> Void
 
     @Environment(\.colorScheme) private var scheme
@@ -74,7 +93,12 @@ private struct HomeDashboardView: View {
     var body: some View {
         VStack(spacing: 0) {
             // MARK: Header
-            AppScreenHeader(title: "Home", onDrawerTapped: onDrawerTapped)
+            AppScreenHeader(
+                title: "Home",
+                hasUnreadNotification: hasUnreadNotification,
+                onNotificationTapped: onNotificationTapped,
+                onDrawerTapped: onDrawerTapped
+            )
 
             // MARK: Search & Filter
             AppSearchFilterBar(text: $searchText)

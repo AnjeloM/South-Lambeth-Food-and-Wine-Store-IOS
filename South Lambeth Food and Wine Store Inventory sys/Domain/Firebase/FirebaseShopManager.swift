@@ -31,6 +31,9 @@ public protocol ShopManaging {
 
     /// Reads the persisted active shop ID from UserDefaults.
     func activeShopId() -> String?
+
+    /// Owner only — fetches all employees for a given shop, including their names and roles.
+    func loadEmployees(for shopId: String) async throws -> [ShopEmployee]
 }
 
 // MARK: - ShopManagerError
@@ -234,6 +237,50 @@ public struct FirebaseShopManager: ShopManaging {
         setActiveShop(id: id)  // keep local cache in sync for offline reads
     }
 
+    // MARK: Load Employees
+
+    public func loadEmployees(for shopId: String) async throws -> [ShopEmployee] {
+        // Query employees collection for this shop
+        let snapshot = try await db.collection("employees")
+            .whereField("shopID", isEqualTo: shopId)
+            .getDocuments()
+
+        // Fetch user names in parallel
+        return try await withThrowingTaskGroup(of: ShopEmployee?.self) { group in
+            for doc in snapshot.documents {
+                let data = doc.data()
+                guard let userID = data["userID"] as? String,
+                      let role   = data["role"]   as? String else { continue }
+
+                group.addTask {
+                    let userDoc = try? await self.db.collection("users").document(userID).getDocument()
+                    let name = userDoc?.data()?["name"] as? String ?? "Unknown"
+                    return ShopEmployee(id: userID, name: name, roleLabel: Self.roleLabel(for: role))
+                }
+            }
+
+            var employees: [ShopEmployee] = []
+            for try await employee in group {
+                if let e = employee { employees.append(e) }
+            }
+            // Sort: owner first, then alphabetically by name
+            return employees.sorted {
+                if $0.roleLabel == "Owner" && $1.roleLabel != "Owner" { return true }
+                if $0.roleLabel != "Owner" && $1.roleLabel == "Owner" { return false }
+                return $0.name < $1.name
+            }
+        }
+    }
+
+    private static func roleLabel(for role: String) -> String {
+        switch role {
+        case "owner":      return "Owner"
+        case "supervisor": return "Supervisor"
+        case "admin":      return "Admin"
+        default:           return "Employee"
+        }
+    }
+
     // MARK: Active Shop
 
     public func setActiveShop(id: String) {
@@ -340,5 +387,10 @@ public struct DemoShopManager: ShopManaging {
 
     public func activeShopId() -> String? {
         UserDefaults.standard.string(forKey: activeShopKey)
+    }
+
+    public func loadEmployees(for shopId: String) async throws -> [ShopEmployee] {
+        try await Task.sleep(nanoseconds: 400_000_000)
+        return ShopEmployee.mockEmployees(for: shopId)
     }
 }

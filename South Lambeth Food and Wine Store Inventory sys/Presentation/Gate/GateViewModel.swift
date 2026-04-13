@@ -14,17 +14,23 @@ public final class GateViewModel: ObservableObject {
     @Published public private(set) var effect: GateEffect?
 
     private let sessionChecker: SessionChecking
+    private let shopChecker: ShopAssignmentChecking
 
     public init(
         initialState: GateState,
-        sessionChecker: SessionChecking
+        sessionChecker: SessionChecking,
+        shopChecker: ShopAssignmentChecking = FirebaseShopAssignmentChecker()
     ) {
         self.state = initialState
         self.sessionChecker = sessionChecker
+        self.shopChecker = shopChecker
     }
-    
-    public convenience init(sessionChecker: SessionChecking) {
-        self.init(initialState: GateState(), sessionChecker: sessionChecker)
+
+    public convenience init(
+        sessionChecker: SessionChecking,
+        shopChecker: ShopAssignmentChecking = FirebaseShopAssignmentChecker()
+    ) {
+        self.init(initialState: GateState(), sessionChecker: sessionChecker, shopChecker: shopChecker)
     }
 
     public func onEvent(_ event: GateEvent) {
@@ -43,13 +49,18 @@ public final class GateViewModel: ObservableObject {
         state.isLoading = true
 
         Task {
-            // Keeps splash visible briefly for polish.
-            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+            // Keep splash visible briefly for polish.
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
 
             let signedIn = await sessionChecker.isSignedIn()
-            let route: GateRoute = signedIn ? .home : .welcome
+            guard signedIn else {
+                onEvent(.routeResolved(.welcome))
+                return
+            }
 
-            onEvent(.routeResolved(route))
+            // Signed in — check if the user has a shop assigned yet
+            let hasShops = await shopChecker.hasShopAssignment()
+            onEvent(.routeResolved(hasShops ? .home : .joinShop))
         }
     }
 

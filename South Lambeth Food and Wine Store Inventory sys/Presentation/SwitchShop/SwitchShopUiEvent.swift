@@ -34,4 +34,14 @@ public enum SwitchShopUiEvent {
 
     // MARK: Owner — set global default shop
     case setDefaultShopTapped(id: String)
+
+    // MARK: Owner — expand / collapse employee list for a shop
+    case shopExpandTapped(id: String)
+
+    // MARK: Owner — employee signup requests
+    case requestsSectionTapped
+    case requestTapped(id: String)
+    case requestSheetDismissed
+    case approveRequestTapped
+    case rejectRequestTapped
 }

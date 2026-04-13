@@ -15,10 +15,11 @@ public struct GateRouteHostView: View {
 
     public init(
         sessionChecker: SessionChecking,
+        shopChecker: ShopAssignmentChecking = FirebaseShopAssignmentChecker(),
         onNavigate: @escaping (GateRoute) -> Void
     ) {
         _viewModel = StateObject(
-            wrappedValue: GateViewModel(sessionChecker: sessionChecker)
+            wrappedValue: GateViewModel(sessionChecker: sessionChecker, shopChecker: shopChecker)
         )
         self.onNavigate = onNavigate
     }

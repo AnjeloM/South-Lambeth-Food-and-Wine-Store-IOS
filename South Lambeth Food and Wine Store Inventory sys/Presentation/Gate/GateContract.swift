@@ -28,4 +28,5 @@ public enum GateEffect: Equatable {
 public enum GateRoute: Equatable {
     case welcome
     case home
+    case joinShop
 }

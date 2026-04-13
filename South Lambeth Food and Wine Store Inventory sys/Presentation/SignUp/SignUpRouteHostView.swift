@@ -15,8 +15,8 @@ public struct SignUpRouteHostView: View {
     @State private var isToastPresented: Bool = false
 
     public init(
-        otpSender: SignUpOtpSending = DemoSignUpOtpSender(),
-        ownerFetcher: OwnerFetching = DemoOwnerFetcher(),
+        otpSender: SignUpOtpSending = FirebaseSignUpOtpSender(),
+        ownerFetcher: OwnerFetching = FirebaseOwnerFetcher(),
         onNavigateBack: @escaping () -> Void,
         onOpenURL: @escaping (URL) -> Void,
         onNavigateOtp: @escaping (String, String, String) -> Void,
@@ -70,6 +70,7 @@ public struct SignUpRouteHostView: View {
 #Preview("SignUpRouteHostView - Light") {
     SignUpRouteHostView(
         otpSender: DemoSignUpOtpSender(),
+        ownerFetcher: DemoOwnerFetcher(),
         onNavigateBack: {},
         onOpenURL: { _ in },
         onNavigateOtp: { _, _, _ in },
@@ -82,6 +83,7 @@ public struct SignUpRouteHostView: View {
 #Preview("SignUpRouteHostView - Dark") {
     SignUpRouteHostView(
         otpSender: DemoSignUpOtpSender(),
+        ownerFetcher: DemoOwnerFetcher(),
         onNavigateBack: {},
         onOpenURL: { _ in },
         onNavigateOtp: { _, _, _ in },

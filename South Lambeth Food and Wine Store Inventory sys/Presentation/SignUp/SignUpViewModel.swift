@@ -15,8 +15,8 @@ public final class SignUpViewModel: ObservableObject {
 
     public init(
         initialState: SignUpUiState? = nil,
-        otpSender: SignUpOtpSending = DemoSignUpOtpSender(),
-        ownerFetcher: OwnerFetching = DemoOwnerFetcher()
+        otpSender: SignUpOtpSending = FirebaseSignUpOtpSender(),
+        ownerFetcher: OwnerFetching = FirebaseOwnerFetcher()
     ) {
         self.state = initialState ?? SignUpUiState()
         self.otpSender = otpSender

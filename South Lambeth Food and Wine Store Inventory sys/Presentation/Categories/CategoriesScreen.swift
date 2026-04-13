@@ -2,9 +2,17 @@ import SwiftUI
 
 public struct CategoriesScreen: View {
 
+    public let hasUnreadNotification: Bool
+    public let onNotificationTapped: () -> Void
     public let onDrawerTapped: () -> Void
 
-    public init(onDrawerTapped: @escaping () -> Void = {}) {
+    public init(
+        hasUnreadNotification: Bool = false,
+        onNotificationTapped: @escaping () -> Void = {},
+        onDrawerTapped: @escaping () -> Void = {}
+    ) {
+        self.hasUnreadNotification = hasUnreadNotification
+        self.onNotificationTapped = onNotificationTapped
         self.onDrawerTapped = onDrawerTapped
     }
 
@@ -16,7 +24,12 @@ public struct CategoriesScreen: View {
     public var body: some View {
         VStack(spacing: 0) {
             // MARK: Header
-            AppScreenHeader(title: "Categories", onDrawerTapped: onDrawerTapped)
+            AppScreenHeader(
+                title: "Categories",
+                hasUnreadNotification: hasUnreadNotification,
+                onNotificationTapped: onNotificationTapped,
+                onDrawerTapped: onDrawerTapped
+            )
 
             // MARK: Search & Filter
             AppSearchFilterBar(text: $searchText)

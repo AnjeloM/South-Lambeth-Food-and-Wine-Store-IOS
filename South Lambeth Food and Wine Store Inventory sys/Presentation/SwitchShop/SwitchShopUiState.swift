@@ -1,5 +1,41 @@
 import Foundation
 
+// MARK: - ShopEmployee
+
+public struct ShopEmployee: Identifiable, Equatable {
+    public var id: String           // userID
+    public var name: String
+    public var roleLabel: String
+
+    public init(id: String, name: String, roleLabel: String) {
+        self.id = id
+        self.name = name
+        self.roleLabel = roleLabel
+    }
+
+    // MARK: - Mock data (previews / DemoShopManager only)
+
+    public static func mockEmployees(for shopId: String) -> [ShopEmployee] {
+        switch shopId {
+        case "mock-shop-1":
+            return [
+                ShopEmployee(id: "u1", name: "Alice Owner",  roleLabel: "Owner"),
+                ShopEmployee(id: "u2", name: "Bob Williams", roleLabel: "Supervisor"),
+                ShopEmployee(id: "u3", name: "Carol Jones",  roleLabel: "Employee"),
+            ]
+        case "mock-shop-2":
+            return [
+                ShopEmployee(id: "u1", name: "Alice Owner",  roleLabel: "Owner"),
+                ShopEmployee(id: "u4", name: "Dan Brown",    roleLabel: "Employee"),
+            ]
+        default:
+            return [
+                ShopEmployee(id: "u1", name: "Alice Owner", roleLabel: "Owner"),
+            ]
+        }
+    }
+}
+
 // MARK: - SwitchShopEntry
 
 public struct SwitchShopEntry: Identifiable, Equatable {
@@ -68,6 +104,19 @@ public struct SwitchShopUiState: Equatable {
     /// True while the Firestore batch to change the default shop is in flight.
     public var isSettingDefault: Bool = false
 
+    // MARK: Owner — employee list per shop (lazy loaded on expand)
+    public var expandedShopIds: Set<String> = []
+    public var employeesByShop: [String: [ShopEmployee]] = [:]
+    public var loadingEmployeesForShop: Set<String> = []
+
+    // MARK: Owner — signup requests
+    public var employeeRequests: [EmployeeSignupRequest] = []
+    public var isLoadingRequests: Bool = false
+    public var isRequestsExpanded: Bool = false
+    public var highlightedRequestId: String? = nil
+    public var selectedRequestId: String? = nil
+    public var isUpdatingRequest: Bool = false
+
     public init() {}
 
     // MARK: - Derived
@@ -95,6 +144,11 @@ public struct SwitchShopUiState: Equatable {
     public var isFormValid: Bool {
         !draftName.trimmingCharacters(in: .whitespaces).isEmpty &&
         !draftAddress.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    public var selectedRequest: EmployeeSignupRequest? {
+        guard let id = selectedRequestId else { return nil }
+        return employeeRequests.first(where: { $0.id == id })
     }
 
     // MARK: - Mock data (previews / DemoShopManager only)

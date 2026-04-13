@@ -27,19 +27,23 @@ public struct AppDrawer: View {
     public let onManageShopTapped: () -> Void
     /// The default print order list; used by PrintSheetView for real data.
     public let defaultPrintList: PrintOrderList?
+    /// Live user profile — name, role label, and current shop name fetched from Firestore.
+    public let profile: DrawerProfile?
 
     public init(
         isOpen: Binding<Bool>,
         onLogout: @escaping () -> Void,
         onSetPrintOrderTapped: @escaping () -> Void = {},
         onManageShopTapped: @escaping () -> Void = {},
-        defaultPrintList: PrintOrderList? = nil
+        defaultPrintList: PrintOrderList? = nil,
+        profile: DrawerProfile? = nil
     ) {
         self._isOpen = isOpen
         self.onLogout = onLogout
         self.onSetPrintOrderTapped = onSetPrintOrderTapped
         self.onManageShopTapped = onManageShopTapped
         self.defaultPrintList = defaultPrintList
+        self.profile = profile
     }
 
     @Environment(\.colorScheme) private var scheme
@@ -140,13 +144,21 @@ public struct AppDrawer: View {
                 .clipShape(Circle())
                 .overlay(Circle().strokeBorder(AppTheme.Colors.fieldBorderVariant(scheme), lineWidth: 1))
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Store Manager")
+            VStack(alignment: .leading, spacing: 2) {
+                Text(profile?.name ?? "Loading...")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(AppTheme.Colors.primaryText(scheme))
-                Text("South Lambeth Store")
-                    .font(.system(size: 13))
+                    .lineLimit(1)
+
+                Text(profile?.roleLabel ?? "")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(AppTheme.Colors.accent(scheme))
+                    .lineLimit(1)
+
+                Text(profile?.shopName ?? "")
+                    .font(.system(size: 12))
                     .foregroundStyle(AppTheme.Colors.secondaryText(scheme))
+                    .lineLimit(1)
             }
 
             Spacer()
@@ -518,7 +530,11 @@ private struct PrintSheetView: View {
         var body: some View {
             ZStack {
                 Color(.systemBackground).ignoresSafeArea()
-                AppDrawer(isOpen: $open, onLogout: {})
+                AppDrawer(
+                    isOpen: $open,
+                    onLogout: {},
+                    profile: DrawerProfile(name: "Jane Smith", roleLabel: "Supervisor", shopName: "South Lambeth Store")
+                )
             }
         }
     }
@@ -531,7 +547,11 @@ private struct PrintSheetView: View {
         var body: some View {
             ZStack {
                 Color(.systemBackground).ignoresSafeArea()
-                AppDrawer(isOpen: $open, onLogout: {})
+                AppDrawer(
+                    isOpen: $open,
+                    onLogout: {},
+                    profile: DrawerProfile(name: "John Owner", roleLabel: "Owner", shopName: "South Lambeth Store")
+                )
             }
         }
     }

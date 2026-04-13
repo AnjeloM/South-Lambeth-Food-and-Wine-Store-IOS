@@ -5,6 +5,7 @@ public struct HomeRouteHostView: View {
     @State private var showScanner = false
     @State private var showSetPrintOrder = false
     @State private var showManageShop = false
+    @State private var highlightedManageShopRequestID: String? = nil
 
     private let onNavigateWelcome: () -> Void
 
@@ -17,6 +18,7 @@ public struct HomeRouteHostView: View {
 
     public var body: some View {
         HomeScreen(state: viewModel.state, onEvent: viewModel.onEvent)
+            .onAppear { viewModel.onEvent(.onAppear) }
             .onChange(of: viewModel.effect) { _, newEffect in
                 guard let newEffect else { return }
                 switch newEffect {
@@ -26,7 +28,8 @@ public struct HomeRouteHostView: View {
                     showScanner = true
                 case .openSetPrintOrder:
                     showSetPrintOrder = true
-                case .openManageShop:
+                case .openManageShop(let highlightRequestID):
+                    highlightedManageShopRequestID = highlightRequestID
                     showManageShop = true
                 }
             }
@@ -45,7 +48,13 @@ public struct HomeRouteHostView: View {
             .fullScreenCover(isPresented: $showManageShop) {
                 SwitchShopRouteHostView(
                     shopManager: FirebaseShopManager(),
-                    onClose: { showManageShop = false }
+                    requestManager: FirebaseEmployeeRequestCenter(),
+                    initialHighlightedRequestID: highlightedManageShopRequestID,
+                    onClose: {
+                        showManageShop = false
+                        highlightedManageShopRequestID = nil
+                        viewModel.onEvent(.onManageShopClosed)
+                    }
                 )
             }
     }

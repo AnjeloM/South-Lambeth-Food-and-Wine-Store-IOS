@@ -16,9 +16,17 @@ public struct SwitchShopRouteHostView: View {
     ///   Use `FirebaseShopManager()` in production and `DemoShopManager()` for previews.
     public init(
         shopManager: ShopManaging = DemoShopManager(),
+        requestManager: EmployeeRequestManaging = DemoEmployeeRequestCenter(),
+        initialHighlightedRequestID: String? = nil,
         onClose: @escaping () -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: SwitchShopViewModel(shopManager: shopManager))
+        _viewModel = StateObject(
+            wrappedValue: SwitchShopViewModel(
+                shopManager: shopManager,
+                requestManager: requestManager,
+                initialHighlightedRequestID: initialHighlightedRequestID
+            )
+        )
         self.onClose = onClose
     }
 

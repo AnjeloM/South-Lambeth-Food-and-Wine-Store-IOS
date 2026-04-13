@@ -9,15 +9,21 @@ public struct InventoryScreen: View {
 
     public let state: InventoryUiState
     public let onEvent: (InventoryUiEvent) -> Void
+    public let hasUnreadNotification: Bool
+    public let onNotificationTapped: () -> Void
     public let onDrawerTapped: () -> Void
 
     public init(
         state: InventoryUiState,
         onEvent: @escaping (InventoryUiEvent) -> Void,
+        hasUnreadNotification: Bool = false,
+        onNotificationTapped: @escaping () -> Void = {},
         onDrawerTapped: @escaping () -> Void = {}
     ) {
-        self.state          = state
-        self.onEvent        = onEvent
+        self.state = state
+        self.onEvent = onEvent
+        self.hasUnreadNotification = hasUnreadNotification
+        self.onNotificationTapped = onNotificationTapped
         self.onDrawerTapped = onDrawerTapped
     }
 
@@ -40,7 +46,12 @@ public struct InventoryScreen: View {
         VStack(spacing: 0) {
 
             // MARK: Header
-            AppScreenHeader(title: "Inventory", onDrawerTapped: onDrawerTapped)
+            AppScreenHeader(
+                title: "Inventory",
+                hasUnreadNotification: hasUnreadNotification,
+                onNotificationTapped: onNotificationTapped,
+                onDrawerTapped: onDrawerTapped
+            )
 
             // MARK: Search & Filter
             AppSearchFilterBar(text: searchBinding)
