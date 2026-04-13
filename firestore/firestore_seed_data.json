@@ -1,0 +1,374 @@
+{
+  "users": [
+    {
+      "userID": "user_owner_001",
+      "name": "Nishan Fernando",
+      "email": "owner1@example.com",
+      "role": "owner",
+      "shopIDs": ["shop_001"],
+      "createdAt": "2026-04-11T09:00:00Z",
+      "updatedAt": "2026-04-11T09:00:00Z"
+    },
+    {
+      "userID": "user_owner_002",
+      "name": "Ahamed Rizvi",
+      "email": "owner2@example.com",
+      "role": "owner",
+      "shopIDs": ["shop_002", "shop_003"],
+      "createdAt": "2026-04-11T09:05:00Z",
+      "updatedAt": "2026-04-11T09:05:00Z"
+    },
+    {
+      "userID": "user_owner_003",
+      "name": "Suresh Kumar",
+      "email": "owner3@example.com",
+      "role": "owner",
+      "shopIDs": ["shop_004", "shop_005", "shop_006"],
+      "createdAt": "2026-04-11T09:10:00Z",
+      "updatedAt": "2026-04-11T09:10:00Z"
+    },
+    {
+      "userID": "user_supervisor_001",
+      "name": "John Smith",
+      "email": "supervisor1@example.com",
+      "role": "supervisor",
+      "shopIDs": ["shop_001"],
+      "createdAt": "2026-04-11T09:15:00Z",
+      "updatedAt": "2026-04-11T09:15:00Z"
+    },
+    {
+      "userID": "user_admin_001",
+      "name": "Emma Brown",
+      "email": "admin1@example.com",
+      "role": "admin",
+      "shopIDs": ["shop_001"],
+      "createdAt": "2026-04-11T09:16:00Z",
+      "updatedAt": "2026-04-11T09:16:00Z"
+    },
+    {
+      "userID": "user_standard_001",
+      "name": "Alex Taylor",
+      "email": "user1@example.com",
+      "role": "standard",
+      "shopIDs": ["shop_001"],
+      "createdAt": "2026-04-11T09:17:00Z",
+      "updatedAt": "2026-04-11T09:17:00Z"
+    },
+    {
+      "userID": "user_standard_002",
+      "name": "Sophia Lee",
+      "email": "user2@example.com",
+      "role": "standard",
+      "shopIDs": ["shop_001"],
+      "createdAt": "2026-04-11T09:18:00Z",
+      "updatedAt": "2026-04-11T09:18:00Z"
+    }
+  ],
+  "shops": [
+    {
+      "shopID": "shop_001",
+      "name": "South Lambeth Food & Wine",
+      "address": "12 South Lambeth Road, London",
+      "ownerUserID": "user_owner_001",
+      "phone": "07111111111",
+      "latitude": 51.4816,
+      "longitude": -0.1195,
+      "createdAt": "2026-04-11T09:00:00Z",
+      "updatedAt": "2026-04-11T09:00:00Z"
+    },
+    {
+      "shopID": "shop_002",
+      "name": "Rizvi Mini Market",
+      "address": "25 High Street, Nottingham",
+      "ownerUserID": "user_owner_002",
+      "phone": "07222222222",
+      "latitude": 52.9548,
+      "longitude": -1.1581,
+      "createdAt": "2026-04-11T09:05:00Z",
+      "updatedAt": "2026-04-11T09:05:00Z"
+    },
+    {
+      "shopID": "shop_003",
+      "name": "Rizvi Express",
+      "address": "8 Derby Road, Nottingham",
+      "ownerUserID": "user_owner_002",
+      "phone": "07222223333",
+      "latitude": 52.9500,
+      "longitude": -1.1600,
+      "createdAt": "2026-04-11T09:06:00Z",
+      "updatedAt": "2026-04-11T09:06:00Z"
+    },
+    {
+      "shopID": "shop_004",
+      "name": "Kumar Store London",
+      "address": "55 Brixton Road, London",
+      "ownerUserID": "user_owner_003",
+      "phone": "07333333331",
+      "latitude": 51.4626,
+      "longitude": -0.1146,
+      "createdAt": "2026-04-11T09:10:00Z",
+      "updatedAt": "2026-04-11T09:10:00Z"
+    },
+    {
+      "shopID": "shop_005",
+      "name": "Kumar Store Croydon",
+      "address": "101 Central Parade, Croydon",
+      "ownerUserID": "user_owner_003",
+      "phone": "07333333332",
+      "latitude": 51.3762,
+      "longitude": -0.0982,
+      "createdAt": "2026-04-11T09:11:00Z",
+      "updatedAt": "2026-04-11T09:11:00Z"
+    },
+    {
+      "shopID": "shop_006",
+      "name": "Kumar Store Luton",
+      "address": "77 Chapel Street, Luton",
+      "ownerUserID": "user_owner_003",
+      "phone": "07333333333",
+      "latitude": 51.8787,
+      "longitude": -0.4200,
+      "createdAt": "2026-04-11T09:12:00Z",
+      "updatedAt": "2026-04-11T09:12:00Z"
+    }
+  ],
+  "pendingRequests": [
+    {
+      "requestID": "pending_001",
+      "name": "Michael Green",
+      "email": "michael.green@example.com",
+      "shopID": "shop_001",
+      "status": "pending",
+      "requestedAt": "2026-04-11T10:00:00Z",
+      "approvedBy": null,
+      "approvedAt": null
+    },
+    {
+      "requestID": "pending_002",
+      "name": "Lisa White",
+      "email": "lisa.white@example.com",
+      "shopID": "shop_002",
+      "status": "approved",
+      "requestedAt": "2026-04-11T10:10:00Z",
+      "approvedBy": "user_owner_002",
+      "approvedAt": "2026-04-11T10:30:00Z"
+    }
+  ],
+  "employees": [
+    {
+      "employeeID": "emp_001",
+      "userID": "user_owner_001",
+      "shopID": "shop_001",
+      "role": "owner",
+      "createdAt": "2026-04-11T09:00:00Z",
+      "updatedAt": "2026-04-11T09:00:00Z"
+    },
+    {
+      "employeeID": "emp_002",
+      "userID": "user_supervisor_001",
+      "shopID": "shop_001",
+      "role": "supervisor",
+      "createdAt": "2026-04-11T09:15:00Z",
+      "updatedAt": "2026-04-11T09:15:00Z"
+    },
+    {
+      "employeeID": "emp_003",
+      "userID": "user_admin_001",
+      "shopID": "shop_001",
+      "role": "admin",
+      "createdAt": "2026-04-11T09:16:00Z",
+      "updatedAt": "2026-04-11T09:16:00Z"
+    },
+    {
+      "employeeID": "emp_004",
+      "userID": "user_standard_001",
+      "shopID": "shop_001",
+      "role": "standard",
+      "createdAt": "2026-04-11T09:17:00Z",
+      "updatedAt": "2026-04-11T09:17:00Z"
+    },
+    {
+      "employeeID": "emp_005",
+      "userID": "user_standard_002",
+      "shopID": "shop_001",
+      "role": "standard",
+      "createdAt": "2026-04-11T09:18:00Z",
+      "updatedAt": "2026-04-11T09:18:00Z"
+    }
+  ],
+  "items": [
+    {
+      "itemID": "item_001",
+      "name": "Coca-Cola Original",
+      "category": "soft_drinks",
+      "subcategory": "cola",
+      "size": "500ml",
+      "packSize": 12,
+      "barcode": "5000112548167",
+      "brand": "Coca-Cola",
+      "supplier": null,
+      "lowStockThreshold": 6,
+      "inStockThreshold": 12
+    },
+    {
+      "itemID": "item_002",
+      "name": "Monster Sugar Free",
+      "category": "soft_drinks",
+      "subcategory": "energy_drinks",
+      "size": "500ml",
+      "packSize": 24,
+      "barcode": "5060335632352",
+      "brand": "Monster",
+      "supplier": null,
+      "lowStockThreshold": 5,
+      "inStockThreshold": 12
+    },
+    {
+      "itemID": "item_003",
+      "name": "Fanta Orange",
+      "category": "soft_drinks",
+      "subcategory": "500ml_bottles",
+      "size": "500ml",
+      "packSize": 12,
+      "barcode": "5449000000996",
+      "brand": "Fanta",
+      "supplier": null,
+      "lowStockThreshold": 4,
+      "inStockThreshold": 10
+    }
+  ],
+  "inventory": [
+    {
+      "inventoryID": "inv_001",
+      "itemID": "item_001",
+      "shopID": "shop_001",
+      "quantityOnHand": 10,
+      "updatedBy": "user_supervisor_001",
+      "updatedAt": "2026-04-11T11:00:00Z"
+    },
+    {
+      "inventoryID": "inv_002",
+      "itemID": "item_002",
+      "shopID": "shop_001",
+      "quantityOnHand": 3,
+      "updatedBy": "user_standard_001",
+      "updatedAt": "2026-04-11T11:10:00Z"
+    },
+    {
+      "inventoryID": "inv_003",
+      "itemID": "item_003",
+      "shopID": "shop_001",
+      "quantityOnHand": 0,
+      "updatedBy": "user_standard_002",
+      "updatedAt": "2026-04-11T11:20:00Z"
+    }
+  ],
+  "purchaseRequests": [
+    {
+      "requestID": "purchase_req_001",
+      "shopID": "shop_001",
+      "items": [
+        {
+          "itemID": "item_002",
+          "quantity": 2
+        },
+        {
+          "itemID": "item_003",
+          "quantity": 3
+        }
+      ],
+      "requestedBy": "user_standard_001",
+      "requestedAt": "2026-04-11T12:00:00Z",
+      "status": "pending",
+      "approvedBy": null,
+      "approvedAt": null
+    },
+    {
+      "requestID": "purchase_req_002",
+      "shopID": "shop_001",
+      "items": [
+        {
+          "itemID": "item_001",
+          "quantity": 1
+        }
+      ],
+      "requestedBy": "user_supervisor_001",
+      "requestedAt": "2026-04-11T12:30:00Z",
+      "status": "approved",
+      "approvedBy": "user_owner_001",
+      "approvedAt": "2026-04-11T12:45:00Z"
+    }
+  ],
+  "timesheets": [
+    {
+      "timesheetID": "timesheet_001",
+      "userID": "user_standard_001",
+      "shopID": "shop_001",
+      "date": "2026-04-11",
+      "checkIn": "09:00",
+      "checkOut": "17:00",
+      "createdAt": "2026-04-11T17:00:00Z"
+    },
+    {
+      "timesheetID": "timesheet_002",
+      "userID": "user_supervisor_001",
+      "shopID": "shop_001",
+      "date": "2026-04-11",
+      "checkIn": "08:30",
+      "checkOut": "17:30",
+      "createdAt": "2026-04-11T17:30:00Z"
+    }
+  ],
+  "notifications": [
+    {
+      "notificationID": "notif_001",
+      "userID": "user_owner_001",
+      "shopID": "shop_001",
+      "title": "New Signup Request",
+      "message": "Michael Green requested to join your shop.",
+      "type": "signup_request",
+      "referenceID": "pending_001",
+      "metadata": {
+        "employeeName": "Michael Green",
+        "employeeEmail": "michael.green@example.com"
+      },
+      "isRead": false,
+      "createdAt": "2026-04-11T10:00:00Z",
+      "readAt": null,
+      "createdBy": "system"
+    },
+    {
+      "notificationID": "notif_002",
+      "userID": "user_supervisor_001",
+      "shopID": "shop_001",
+      "title": "Timesheet Submitted",
+      "message": "Alex Taylor submitted today's timesheet.",
+      "type": "timesheet_submission",
+      "referenceID": "timesheet_001",
+      "metadata": {
+        "employeeName": "Alex Taylor",
+        "date": "2026-04-11"
+      },
+      "isRead": false,
+      "createdAt": "2026-04-11T17:00:00Z",
+      "readAt": null,
+      "createdBy": "user_standard_001"
+    },
+    {
+      "notificationID": "notif_003",
+      "userID": "user_owner_001",
+      "shopID": "shop_001",
+      "title": "Purchase Request Waiting",
+      "message": "A purchase request is waiting for review.",
+      "type": "purchase_request",
+      "referenceID": "purchase_req_001",
+      "metadata": {
+        "itemsCount": 2
+      },
+      "isRead": false,
+      "createdAt": "2026-04-11T12:00:00Z",
+      "readAt": null,
+      "createdBy": "user_standard_001"
+    }
+  ]
+}

@@ -468,8 +468,8 @@ export const resetPasswordWithToken = onCall(async (request) => {
   }
 });
 
-/* ====== Register new user ====== */
-/* ================================ */
+/* ====== Register new user (standard role) ====== */
+/* ================================================ */
 export const registerUser = onCall(async (request) => {
   try {
     const data = request.data as { email?: string; name?: string; password?: string };
@@ -488,7 +488,6 @@ export const registerUser = onCall(async (request) => {
     // Prevent duplicate accounts — getUserByEmail throws auth/user-not-found if absent
     try {
       await admin.auth().getUserByEmail(email);
-      // If we reach here, the user already exists
       throw new HttpsError("already-exists", "An account with this email already exists.");
     } catch (err: any) {
       if (err instanceof HttpsError) throw err;
@@ -501,12 +500,17 @@ export const registerUser = onCall(async (request) => {
       displayName: name,
     });
 
+    const now = admin.firestore.Timestamp.now();
+
+    // Write users document aligned with firestore_schema_spec.json
     await db.collection("users").doc(userRecord.uid).set({
-      uid: userRecord.uid,
+      userID:    userRecord.uid,
+      name,
       email,
-      displayName: name,
-      role: "staff",
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      role:      "standard",
+      shopIDs:   [],            // populated when owner approves a join-request
+      createdAt: now,
+      updatedAt: now,
     });
 
     logger.info("User registered", { uid: userRecord.uid, email });
@@ -514,6 +518,140 @@ export const registerUser = onCall(async (request) => {
 
   } catch (err: any) {
     logger.error("registerUser failed", { message: err?.message, code: err?.code });
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err?.message ?? "Unknown error");
+  }
+});
+
+/* ====== Register owner with shops ====== */
+/* ======================================= */
+
+interface ShopInput {
+  shopId?: string;
+  name?: string;
+  address?: string;
+  phone?: string;
+  locationLabel?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+export const registerOwner = onCall(async (request) => {
+  try {
+    const data = request.data as {
+      name?: string;
+      email?: string;
+      password?: string;
+      shops?: ShopInput[];
+      defaultShopId?: string;
+    };
+
+    const name          = (data.name          ?? "").trim();
+    const email         = (data.email         ?? "").trim().toLowerCase();
+    const password      = (data.password      ?? "").trim();
+    const shops         = data.shops ?? [];
+    const defaultShopId = (data.defaultShopId ?? "").trim();
+
+    // ── Validate top-level fields ────────────────────────────────────────
+    if (!name)          throw new HttpsError("invalid-argument", "name is required");
+    if (!email)         throw new HttpsError("invalid-argument", "email is required");
+    if (!password)      throw new HttpsError("invalid-argument", "password is required");
+    if (!defaultShopId) throw new HttpsError("invalid-argument", "defaultShopId is required");
+
+    if (!isStrongPassword(password))
+      throw new HttpsError("invalid-argument", "Password does not meet requirements.");
+
+    if (shops.length === 0)
+      throw new HttpsError("invalid-argument", "At least one shop is required.");
+
+    // ── Validate each shop ───────────────────────────────────────────────
+    for (const shop of shops) {
+      if (!shop.shopId?.trim())   throw new HttpsError("invalid-argument", "Each shop must have a shopId.");
+      if (!shop.name?.trim())     throw new HttpsError("invalid-argument", "Each shop must have a name.");
+      if (!shop.address?.trim())  throw new HttpsError("invalid-argument", "Each shop must have an address.");
+    }
+
+    if (!shops.some(s => s.shopId === defaultShopId))
+      throw new HttpsError("invalid-argument", "defaultShopId must match one of the provided shops.");
+
+    // ── Check for duplicate email ────────────────────────────────────────
+    try {
+      await admin.auth().getUserByEmail(email);
+      throw new HttpsError("already-exists", "An account with this email already exists.");
+    } catch (err: any) {
+      if (err instanceof HttpsError) throw err;
+      // auth/user-not-found — expected, continue
+    }
+
+    // ── Create Firebase Auth user ────────────────────────────────────────
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName: name,
+    });
+
+    const uid     = userRecord.uid;
+    const now     = admin.firestore.Timestamp.now();
+    const shopIDs = shops.map(s => s.shopId!.trim());
+
+    // ── Batch write all Firestore documents ──────────────────────────────
+    const batch = db.batch();
+
+    // 1. users/{uid}
+    batch.set(db.collection("users").doc(uid), {
+      userID:    uid,
+      name,
+      email,
+      role:      "owner",
+      shopIDs,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // 2. shops/{shopId}  +  employees/{uid}_{shopId}  — one pair per shop
+    for (const shop of shops) {
+      const shopId = shop.shopId!.trim();
+
+      batch.set(db.collection("shops").doc(shopId), {
+        shopID:       shopId,
+        name:         shop.name!.trim(),
+        address:      shop.address!.trim(),
+        ownerUserID:  uid,
+        phone:        (shop.phone ?? "").trim(),
+        latitude:     shop.latitude  ?? null,
+        longitude:    shop.longitude ?? null,
+        createdAt:    now,
+        updatedAt:    now,
+      });
+
+      // employeeID is deterministic so a retried call won't create duplicates
+      const empId = `${uid}_${shopId}`;
+      batch.set(db.collection("employees").doc(empId), {
+        employeeID: empId,
+        userID:     uid,
+        shopID:     shopId,
+        role:       "owner",
+        createdAt:  now,
+        updatedAt:  now,
+      });
+    }
+
+    // Commit — if this throws, we clean up the Auth user so there's no orphan
+    try {
+      await batch.commit();
+    } catch (batchErr: any) {
+      logger.error("registerOwner batch failed — rolling back Auth user", {
+        uid, message: batchErr?.message,
+      });
+      await admin.auth().deleteUser(uid).catch(() => {});
+      throw new HttpsError("internal", "Failed to save account. Please try again.");
+    }
+
+    logger.info("Owner registered", { uid, email, shopCount: shops.length, defaultShopId });
+    return { ok: true, uid };
+
+  } catch (err: any) {
+    logger.error("registerOwner failed", { message: err?.message, code: err?.code });
     if (err instanceof HttpsError) throw err;
     throw new HttpsError("internal", err?.message ?? "Unknown error");
   }

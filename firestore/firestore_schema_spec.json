@@ -1,0 +1,123 @@
+{
+  "collections": {
+    "users": {
+      "documentId": "userID",
+      "fields": {
+        "userID": "string",
+        "name": "string",
+        "email": "string",
+        "role": "string: owner | supervisor | admin | standard",
+        "shopIDs": "array<string>",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      }
+    },
+    "shops": {
+      "documentId": "shopID",
+      "fields": {
+        "shopID": "string",
+        "name": "string",
+        "address": "string",
+        "ownerUserID": "string",
+        "phone": "string",
+        "latitude": "number",
+        "longitude": "number",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      }
+    },
+    "pendingRequests": {
+      "documentId": "requestID",
+      "fields": {
+        "requestID": "string",
+        "name": "string",
+        "email": "string",
+        "shopID": "string",
+        "status": "string: pending | approved | rejected",
+        "requestedAt": "timestamp",
+        "approvedBy": "string | null",
+        "approvedAt": "timestamp | null"
+      }
+    },
+    "employees": {
+      "documentId": "employeeID",
+      "fields": {
+        "employeeID": "string",
+        "userID": "string",
+        "shopID": "string",
+        "role": "string: owner | supervisor | admin | standard",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      }
+    },
+    "items": {
+      "documentId": "itemID",
+      "fields": {
+        "itemID": "string",
+        "name": "string",
+        "category": "string",
+        "subcategory": "string",
+        "size": "string",
+        "packSize": "number",
+        "barcode": "string",
+        "brand": "string",
+        "supplier": "string | null",
+        "lowStockThreshold": "number",
+        "inStockThreshold": "number"
+      }
+    },
+    "inventory": {
+      "documentId": "inventoryID",
+      "fields": {
+        "inventoryID": "string",
+        "itemID": "string",
+        "shopID": "string",
+        "quantityOnHand": "number",
+        "updatedBy": "string",
+        "updatedAt": "timestamp"
+      }
+    },
+    "purchaseRequests": {
+      "documentId": "requestID",
+      "fields": {
+        "requestID": "string",
+        "shopID": "string",
+        "items": "array<object:{itemID:string, quantity:number}>",
+        "requestedBy": "string",
+        "requestedAt": "timestamp",
+        "status": "string: pending | approved | rejected",
+        "approvedBy": "string | null",
+        "approvedAt": "timestamp | null"
+      }
+    },
+    "timesheets": {
+      "documentId": "timesheetID",
+      "fields": {
+        "timesheetID": "string",
+        "userID": "string",
+        "shopID": "string",
+        "date": "string",
+        "checkIn": "string",
+        "checkOut": "string",
+        "createdAt": "timestamp"
+      }
+    },
+    "notifications": {
+      "documentId": "notificationID",
+      "fields": {
+        "notificationID": "string",
+        "userID": "string",
+        "shopID": "string",
+        "title": "string",
+        "message": "string",
+        "type": "string",
+        "referenceID": "string",
+        "metadata": "map<string, any>",
+        "isRead": "boolean",
+        "createdAt": "timestamp",
+        "readAt": "timestamp | null",
+        "createdBy": "string"
+      }
+    }
+  }
+}
